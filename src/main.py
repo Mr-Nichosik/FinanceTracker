@@ -40,10 +40,13 @@ class Console:
         print(self.__errors[0].get("desc"))
 
     def __show_all_operations(self):
-        data: dict = Storage.load()
+        data: list[Operation] = Storage.load_all()
 
-        for i in data.get("Tasks", []):
-            print(i)
+        for i in data:
+            self.__show_operation(i)
+
+    def __show_operation(self, op: Operation):
+        print(f"ID: {op.id} | описание: {op.title} | сумма: {op.amount} | тип: {op.type} | категория: {op.category} | дата: {op.date}")
 
     def run(self):
         while True:
@@ -94,6 +97,14 @@ class Console:
         
         print("Заголовок:")
         op.title = input("> ")
+
+        while True:
+            try:
+                print("Сумма (формат дробных чисел - 100.5)")
+                op.amount = float(input("> "))
+                break
+            except Exception as e:
+                print("Неверный формат ввода")
 
         print("Дата:")
         op.date = input("> ")

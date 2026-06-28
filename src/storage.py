@@ -3,13 +3,22 @@ from operation import *
 import os
 import json
 
+from operation import Operation
+
 class Storage:
     __fileName = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data.json")
     __defaultObject = {"Tasks": []}
 
     @staticmethod
     def load_all() -> list[Operation]:
-        Storage.__check_file()
+        op_list = []
+
+        data = Storage.raw_load()
+        for i in data.get("Tasks", []):
+            i: Operation = Operation.from_dict(i)
+            op_list.append(i)
+
+        return op_list
 
     @staticmethod
     def load(id) -> Operation:
