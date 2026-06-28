@@ -7,9 +7,11 @@ from finance_manager import FinanceManager
 class Console:
     def __init__(self):
         self.__commands = [
+            {"id": -1, "desc": "[DEBUG] Shows task by id", "prefix": "DEBUG", "action": self.__show_operation_by_id},
             {"id": 0, "desc": "[DEBUG] Shows all tasks", "prefix": "DEBUG", "action": self.__show_all_operations},
             {"id": 1, "desc": "Добавить операцию", "prefix": None, "action": self.add_operation},
             {"id": 2, "desc": "Фильтр", "prefix": None, "action": self.show_filtered_operations},
+            {"id": 3, "desc": "Удалить операцию", "prefix": None, "action": self.remove_operation},
         ]
 
         self.__errors = [
@@ -41,11 +43,11 @@ class Console:
     def __show_error(self, id: int):
         for i in self.__errors:
             if i.get("id") == id:
-                print(i.get("desc"))
+                print(RED, i.get("desc"), RESET)
                 return
 
         # if the error id doesn't exist
-        print(self.__errors[0].get("desc"))
+        print(RED, self.__errors[0].get("desc"), RESET)
 
     def __show_operation(self, op: Operation):
         print(f"сумма: {op.amount} | тип: {op.type} | категория: {op.category} | дата: {op.date} | ID: {op.id} | описание: {op.title}")
@@ -55,6 +57,16 @@ class Console:
 
         for i in data:
             self.__show_operation(i)
+
+    def __show_operation_by_id(self):
+        print("Введите id операции:")
+        while True:
+            try:
+                operation_id = int(self.__prompt())
+                self.__show_operation(self.manager.get_operation(operation_id))
+                return
+            except Exception as e:
+                print("Неверный формат ввода")
 
     def run(self):
         while True:
@@ -105,7 +117,8 @@ class Console:
         print("Дата:")
         date = self.__prompt()
 
-        self.manager.add_operation(type, category, title, amount, date)
+        self.__show_operation(self.manager.add_operation(type, category, title, amount, date))
+        print(f"{GREEN}Сохранено{RESET}")
 
     def show_filtered_operations(self):
         print("Нажмите Enter, чтобы пропустить условие")
@@ -129,3 +142,6 @@ class Console:
         data = self.manager.filter_operations(date, category, type)
         for i in data:
             self.__show_operation(i)
+
+    def remove_operation(self):
+        pass
