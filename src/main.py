@@ -6,9 +6,9 @@ from storage import *
 class Console:
     def __init__(self):
         self.__commands = [
-            {"id": 0, "desc": "[DEBUG] Shows all tasks", "action": self.__show_all_operations},
-            {"id": 1, "desc": "Показать данные за период", "action": self.show_operations_list},
-            {"id": 2, "desc": "Добавить операцию", "action": self.show_operations_list},
+            {"id": 0, "desc": "[DEBUG] Shows all tasks", "prefix": "DEBUG", "action": self.__show_all_operations},
+            {"id": 1, "desc": "Показать данные за период", "prefix": None, "action": self.show_operations_list},
+            {"id": 2, "desc": "Добавить операцию", "prefix": None, "action": self.add_operation},
         ]
 
         self.__errors = [
@@ -16,14 +16,7 @@ class Console:
             {"id": 1, "desc": "<CommandNotFoundError>"}
         ]
 
-    # переработать систему ввода команд!!!
-    def __input_command(self):
-        # id = int(input("> "))
-        # for i in self.__commands:
-        #     if i.get("id") == id:
-        #         return i["action"]
-        # return 1   
-
+    def __input_command(self): 
         while True:
             try:
                 command_id = int(input("> "))
@@ -34,7 +27,7 @@ class Console:
     def __show_menu(self):
         print("Доступные команды:")
         for i in self.__commands:
-            if i.get("id") > 0:
+            if not i.get("prefix"):
                 print(f"{i.get("id")}. {i.get("desc")}")
 
     def __show_error(self, id: int):
@@ -61,18 +54,13 @@ class Console:
             command_id = self.__input_command()
             os.system("cls")
 
-            # if callable(function):
-            #     function()
-            # else:
-            #     self.__show_error(function) # if it's not a funcm there will be an error id
-
-            if any(item.get("id") == command_id for item in self.__commands):
-                if command_id > 0:
-                    next(item for item in self.__commands if item.get("id") == command_id).get("action")()
+            command = next((item for item in self.__commands if item.get("id") == command_id), None)
+            if command != None:
+                if command.get("prefix"):
+                    print(f"[{command.get("prefix")}]")
+                    command.get("action")()
                 else:
-                    print("[DEBUG]")
-                    next(item for item in self.__commands if item.get("id") == command_id).get("action")()
-
+                    command.get("action")()
             else:
                 self.__show_error(1)
 
@@ -90,19 +78,27 @@ class Console:
     def add_operation(self):
         op = Operation()
 
-        print("Тип операции (доход/расход):")
-        op.type = input(">")
-        
+        while True:
+            print("Тип операции (1 - расход | 2 - доход):")
+            type = input("> ")
+            if type == "1":
+                op.type = "расход"
+                break
+            elif type == "2":
+                op.type = "доход"
+                break
+            print("Неверный формат операции")
+
         print("Категория:")
-        op.category = input(">")
+        op.category = input("> ")
         
         print("Заголовок:")
-        op.title = input(">")
+        op.title = input("> ")
 
         print("Дата:")
-        op.date = input(">")
+        op.date = input("> ")
 
-        # запрос к storage
+        Storage.save(op)
 
 if __name__ == "__main__":
     app = Console()

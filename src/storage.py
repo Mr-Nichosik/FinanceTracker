@@ -1,5 +1,4 @@
 
-from codecs import escape_encode
 from operation import *
 import os
 import json
@@ -9,11 +8,15 @@ class Storage:
     __defaultObject = {"Tasks": []}
 
     @staticmethod
-    def load(id):
-        pass
+    def load_all() -> list[Operation]:
+        Storage.__check_file()
 
     @staticmethod
-    def load():
+    def load(id) -> Operation:
+        Storage.__check_file()
+
+    @staticmethod
+    def raw_load() -> dict[str, list[dict]]:
         Storage.__check_file()
 
         with open(Storage.__fileName, "r") as file:
@@ -21,15 +24,27 @@ class Storage:
 
     @staticmethod
     def save(operation: Operation):
-        pass
+        Storage.__check_file()
+
+        operation_dict = operation.to_dict()
+
+        data = Storage.raw_load()
+        data.get("Tasks").append(operation_dict)
+
+        with open(Storage.__fileName, "w", encoding="utf-8") as file:
+            json.dump(data, file, ensure_ascii=False, indent=4)
 
     @staticmethod
     def remove(id):
         pass
 
     @staticmethod
+    def get_id_set() -> set[int]:
+        pass
+
+    @staticmethod
     def __create_file():
-        with open(Storage.__fileName, "w") as file:
+        with open(Storage.__fileName, "w", encoding="utf-8") as file:
             json.dump(Storage.__defaultObject, file, ensure_ascii=False, indent=4)
 
     @staticmethod
@@ -47,5 +62,5 @@ class Storage:
             Storage.__create_file()
         
 if __name__ == "__main__":
-    print("use main.py")
+    Storage.save(Operation())
         
