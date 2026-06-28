@@ -18,26 +18,6 @@ class FinanceManager:
 
     def get_all_operations(self) -> list[Operation]:
         return Storage.load_all()
-
-    # def get_operations_by_period(self, period: str) -> list[Operation]:
-    #     data = self.get_all_operations()
-    #     filtered = []
-
-    #     for op in data:
-    #         if period in op.date:
-    #             filtered.append(op)
-        
-    #     return filtered
-    
-    # def get_operations_by_category(self, category: str) -> list[Operation]:
-        data = self.get_all_operations()
-        filtered = []
-
-        for op in data:
-            if category.lower() == op.category.lower():
-                filtered.append(op)
-
-        return filtered
     
     def filter_operations(self, period: str = None, category: str = None, type: str = None) -> list[Operation]:
         data = self.get_all_operations()
@@ -53,6 +33,9 @@ class FinanceManager:
             if type and type.lower() != op.type.lower():
                 continue
 
-        filtered.append(op)
+            filtered.append(op)
 
         return filtered
+    
+    def get_balance(self):
+        pass

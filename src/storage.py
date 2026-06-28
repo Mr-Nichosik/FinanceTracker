@@ -28,7 +28,7 @@ class Storage:
     def raw_load() -> dict[str, list[dict]]:
         Storage.__check_file()
 
-        with open(Storage.__fileName, "r") as file:
+        with open(Storage.__fileName, "r", encoding="utf-8") as file:
             return json.load(file)
 
     @staticmethod
