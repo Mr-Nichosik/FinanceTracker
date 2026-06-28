@@ -1,20 +1,22 @@
 
 import os
-from operation import *
-from storage import *
+from operation import Operation
+from finance_manager import FinanceManager
 
 class Console:
     def __init__(self):
         self.__commands = [
             {"id": 0, "desc": "[DEBUG] Shows all tasks", "prefix": "DEBUG", "action": self.__show_all_operations},
-            {"id": 1, "desc": "Показать данные за период", "prefix": None, "action": self.show_operations_list},
-            {"id": 2, "desc": "Добавить операцию", "prefix": None, "action": self.add_operation},
+            {"id": 1, "desc": "Добавить операцию", "prefix": None, "action": self.add_operation},
+            {"id": 2, "desc": "Фильтр", "prefix": None, "action": self.show_filtered_operations},
         ]
 
         self.__errors = [
             {"id": 0, "desc": "<UnexpectedError>"},
             {"id": 1, "desc": "<CommandNotFoundError>"}
         ]
+
+        self.manager = FinanceManager()
 
     def __input_command(self): 
         while True:
@@ -39,14 +41,14 @@ class Console:
         # if the error id doesn't exist
         print(self.__errors[0].get("desc"))
 
+    def __show_operation(self, op: Operation):
+        print(f"сумма: {op.amount} | тип: {op.type} | категория: {op.category} | дата: {op.date} | ID: {op.id} | описание: {op.title}")
+
     def __show_all_operations(self):
-        data: list[Operation] = Storage.load_all()
+        data: list[Operation] = self.manager.get_all_operations()
 
         for i in data:
             self.__show_operation(i)
-
-    def __show_operation(self, op: Operation):
-        print(f"ID: {op.id} | описание: {op.title} | сумма: {op.amount} | тип: {op.type} | категория: {op.category} | дата: {op.date}")
 
     def run(self):
         while True:
@@ -70,46 +72,93 @@ class Console:
             input()
             os.system("cls")
 
-    def show_operations_list(self):
-        print("Введите дату формата MM.YYYY или YYYY:")
-        date = input(">")
-        date = [x for x in date.split(".")]
-        os.system("cls")
-
-        # запрос к storage, cls обязательно
-
     def add_operation(self):
-        op = Operation()
-
         while True:
             print("Тип операции (1 - расход | 2 - доход):")
             type = input("> ")
             if type == "1":
-                op.type = "расход"
+                type = "расход"
                 break
             elif type == "2":
-                op.type = "доход"
+                type = "доход"
                 break
             print("Неверный формат операции")
 
         print("Категория:")
-        op.category = input("> ")
+        category = input("> ")
         
         print("Заголовок:")
-        op.title = input("> ")
+        title = input("> ")
 
         while True:
             try:
                 print("Сумма (формат дробных чисел - 100.5)")
-                op.amount = float(input("> "))
+                amount = float(input("> "))
                 break
             except Exception as e:
                 print("Неверный формат ввода")
 
         print("Дата:")
-        op.date = input("> ")
+        date = input("> ")
 
-        Storage.save(op)
+        self.manager.add_operation(type, category, title, amount, date)
+
+    def show_filtered_operations(self):
+        print("Нажмите Enter, чтобы пропустить условие")
+        print()
+
+        print("Дата формата DD.MM.YYYY | MM.YYYY | YYYY:")
+        date = input("> ")
+        print()
+
+        print("Категория:")
+        category = input("> ")
+        print()
+
+        print("Тип:")
+        type = input("> ")
+
+        info = [date, category, type]
+        for i in range(len(info)):
+            if not info[i].strip():
+                info[i] = None
+
+        date, category, type = info
+
+        data = self.manager.filter_operations(date, category, type)
+        for i in data:
+            self.__show_operation(i)
+        
+
+    # def show_operations_by_period(self):
+    #     print("Введите дату формата DD.MM.YYYY, MM.YYYY или YYYY:")
+    #     date = input("> ")
+    #     os.system("cls")
+
+    #     data = self.manager.get_operations_by_period(date)
+
+    #     if not data:
+    #         print("Данные не найдены")
+    #         return
+
+    #     print("Найденные операции:")
+    #     for i in data:
+    #         self.__show_operation(i)
+
+    # def show_operations_by_category(self):
+        # print("Укажите категорию: ")
+        # category = input("> ")
+        # os.system("cls")
+
+        # data = self.manager.get_operations_by_category(category)
+
+        # if not data:
+        #     print("Данные не найдены")
+        #     return
+
+        # print("Найденные операции:")
+        # for i in data:
+        #     self.__show_operation(i)
 
 if __name__ == "__main__":
     app = Console()
