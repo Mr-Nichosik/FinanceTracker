@@ -1,4 +1,5 @@
 
+from category import Category
 from operation import *
 from storage import Storage
 
@@ -43,4 +44,25 @@ class FinanceManager:
         return filtered
     
     def get_balance(self):
+        pass
+
+    def add_category(self, title) -> Category:
+        id_set = Storage.get_cat_id_set()
+        if len(id_set) == 0:
+            id = 1
+        else:
+            id = max(id_set) + 1
+
+        cat = Category(id, title)
+        Storage.save_cat(cat)
+
+        return cat
+
+    def get_all_categories(self) -> list[Category]:
+        return Storage.load_all_cat()
+
+    def get_category(self, id) -> Category:
+        return Storage.load_cat(id)
+
+    def remove_category(self):
         pass

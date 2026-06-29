@@ -1,5 +1,6 @@
 
 import os
+from category import Category
 from format import *
 from operation import Operation
 from finance_manager import FinanceManager
@@ -12,6 +13,13 @@ class Console:
             {"id": 1, "desc": "Добавить операцию", "prefix": None, "action": self.add_operation},
             {"id": 2, "desc": "Фильтр", "prefix": None, "action": self.show_filtered_operations},
             {"id": 3, "desc": "Удалить операцию", "prefix": None, "action": self.remove_operation},
+            {"id": 4, "desc": "Управление категориями", "prefix": None, "action": self.categories_control},
+        ]
+
+        self.__categoriesMenuCommands = [
+            {"id": 1, "desc": "Создать", "action": self.add_category},
+            {"id": 2, "desc": "Редактировать", "action": self.edit_category},
+            {"id": 3, "desc": "Удалить", "action": self.remove_category},
         ]
 
         self.__errors = [
@@ -34,6 +42,7 @@ class Console:
             except Exception as e:
                 print("Неверный формат ввода")
 
+
     def __show_menu(self):
         print("Доступные команды:")
         for i in self.__commands:
@@ -50,7 +59,8 @@ class Console:
         print(RED, self.__errors[0].get("desc"), RESET)
 
     def __show_operation(self, op: Operation):
-        print(f"сумма: {op.amount} | тип: {op.type} | категория: {op.category} | дата: {op.date} | ID: {op.id} | описание: {op.title}")
+        category = self.manager.get_category(op.category_id)
+        print(f"сумма: {op.amount} | тип: {op.type} | категория: {category.title} | дата: {op.date} | ID: {op.id} | описание: {op.title}")
 
     def __show_all_operations(self):
         data: list[Operation] = self.manager.get_all_operations()
@@ -67,6 +77,15 @@ class Console:
                 return
             except Exception as e:
                 print("Неверный формат ввода")
+
+    def __show_category(self, cat: Category):
+        print(f"id: {cat.id} | название: {cat.title}")
+
+    def __show_all_categories(self):
+        data: list[Category] = self.manager.get_all_categories()
+        
+        for i in data:
+            self.__show_category(i)
 
     def run(self):
         while True:
@@ -144,4 +163,17 @@ class Console:
             self.__show_operation(i)
 
     def remove_operation(self):
+        pass
+
+    def categories_control(self):
+        self.__show_all_categories()
+        print()
+
+    def add_category(self):
+        pass
+
+    def edit_category(self):
+        pass
+
+    def remove_category(self):
         pass

@@ -10,14 +10,17 @@ from operation import Operation
 class Storage:
     __currentFolder = os.path.dirname(os.path.abspath(__file__))
     __fileName = os.path.join(__currentFolder, "data.json")
-    __defaultObject: dict[str, list] = {"Tasks": [], "Categories": []}
+
+    __operationSectionTitle = "Tasks"
+    __categorySectionTitle = "Categories"
+    __defaultObject: dict[str, list] = {__operationSectionTitle: [], __categorySectionTitle: []}
 
     @staticmethod
     def load_all_op() -> list[Operation]:
         op_list = []
 
         data = Storage.__raw_load()
-        for i in data.get("Tasks", []):
+        for i in data.get(Storage.__operationSectionTitle, []):
             i: Operation = Operation.from_dict(i)
             op_list.append(i)
 
@@ -25,10 +28,8 @@ class Storage:
 
     @staticmethod
     def load_op(id) -> Operation | None:
-        Storage.ensure_structure()
-
         data = Storage.__raw_load()
-        for i in data.get("Tasks", []):
+        for i in data.get(Storage.__operationSectionTitle, []):
             if i.get("id") == id:
                 return Operation.from_dict(i)
         
@@ -39,7 +40,7 @@ class Storage:
         operation_dict = operation.to_dict()
 
         data = Storage.__raw_load()
-        data.get("Tasks").append(operation_dict)
+        data.get(Storage.__operationSectionTitle).append(operation_dict)
 
         Storage.__save_data(data)
 
@@ -60,13 +61,37 @@ class Storage:
         return id_set
 
     @staticmethod
+    def load_all_cat() -> list[Category]:
+        cat_list = []
+
+        data = Storage.__raw_load()
+        for i in data.get(Storage.__categorySectionTitle, []):
+            i: Category = Category.from_dict(i)
+            cat_list.append(i)
+
+        return cat_list
+
+    @staticmethod
+    def load_cat(id) -> Category | None:
+        data = Storage.__raw_load()
+        for i in data.get(Storage.__categorySectionTitle, []):
+            if i.get("id") == id:
+                return Category.from_dict(i)
+        
+        return None
+
+    @staticmethod
     def save_cat(cat: Category):
         cat_dict = cat.to_dict()
 
         data = Storage.__raw_load()
-        data.get("Categories").append(cat_dict)
+        data.get(Storage.__categorySectionTitle).append(cat_dict)
 
         Storage.__save_data(data)
+
+    @staticmethod
+    def get_cat_id_set() -> set[int]:
+        pass
 
     @staticmethod
     def __raw_load() -> dict[str, list[dict]]:
@@ -102,17 +127,17 @@ class Storage:
             with open(Storage.__fileName, "r") as file:
                 data: dict[str, list] = json.load(file)
 
-            if "Tasks" in data and "Categories" in data: return
+            if Storage.__operationSectionTitle in data and Storage.__categorySectionTitle in data: return
 
             Storage.__creat_backup()
 
-            if "Tasks" not in data and "Categories" not in data:  
+            if Storage.__operationSectionTitle not in data and Storage.__categorySectionTitle not in data:  
                 Storage.__create_file()
 
-            elif "Tasks" in data and "Categories" not in data:
-                data["Categories"] = []
-            elif "Tasks" not in data and "Categories" in data:
-                data["Tasks"] = []
+            elif Storage.__operationSectionTitle in data and Storage.__categorySectionTitle not in data:
+                data[Storage.__categorySectionTitle] = []
+            elif Storage.__operationSectionTitle not in data and Storage.__categorySectionTitle in data:
+                data[Storage.__operationSectionTitle] = []
 
             with open(Storage.__fileName, "w", encoding="utf-8") as file:
                 json.dump(data, file, ensure_ascii=False, indent=4)
@@ -122,5 +147,5 @@ class Storage:
             Storage.__create_file()
 
 if __name__ == "__main__":
-    Storage.ensure_structure()
+    print(Storage.load_all_cat())
         
