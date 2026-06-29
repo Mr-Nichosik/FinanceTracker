@@ -7,7 +7,7 @@ from finance_manager import FinanceManager
 
 class Console:
     def __init__(self):
-        self.__commands = [
+        self.__main_commands = [
             {"id": -1, "desc": "[DEBUG] Shows task by id", "prefix": "DEBUG", "action": self.__show_operation_by_id},
             {"id": 0, "desc": "[DEBUG] Shows all tasks", "prefix": "DEBUG", "action": self.__show_all_operations},
             {"id": 1, "desc": "Добавить операцию", "prefix": None, "action": self.add_operation},
@@ -16,10 +16,10 @@ class Console:
             {"id": 4, "desc": "Управление категориями", "prefix": None, "action": self.categories_control},
         ]
 
-        self.__categoriesMenuCommands = [
-            {"id": 1, "desc": "Создать", "action": self.add_category},
-            {"id": 2, "desc": "Редактировать", "action": self.edit_category},
-            {"id": 3, "desc": "Удалить", "action": self.remove_category},
+        self.__category_commands = [
+            {"id": 1, "desc": "Создать", "prefix": None, "action": self.add_category},
+            {"id": 2, "desc": "Редактировать", "prefix": None, "action": self.edit_category},
+            {"id": 3, "desc": "Удалить", "prefix": None, "action": self.remove_category},
         ]
 
         self.__errors = [
@@ -42,10 +42,13 @@ class Console:
             except Exception as e:
                 print("Неверный формат ввода")
 
+    def __run_menu(self, commands: list[dict], showWithPrefix=False, clearScreen=False):
+        print("Доступные действия:")
 
-    def __show_menu(self):
-        print("Доступные команды:")
-        for i in self.__commands:
+        for i in commands:
+            if showWithPrefix == True and i.get("prefix"):
+                print(f"{i.get("id")}. {i.get("desc")}")
+
             if not i.get("prefix"):
                 print(f"{i.get("id")}. {i.get("desc")}")
 
@@ -89,12 +92,12 @@ class Console:
 
     def run(self):
         while True:
-            self.__show_menu()
+            self.__run_menu(self.__main_commands)
 
             command_id = self.__input_command()
             os.system("cls")
 
-            command = next((item for item in self.__commands if item.get("id") == command_id), None)
+            command = next((item for item in self.__main_commands if item.get("id") == command_id), None)
             if command != None:
                 if command.get("prefix"):
                     print(f"[{command.get("prefix")}]")
@@ -166,14 +169,29 @@ class Console:
         pass
 
     def categories_control(self):
+        print("Список категорий:")
         self.__show_all_categories()
         print()
 
+        self.__run_menu(self.__category_commands)
+
+        command_id = self.__input_command()
+
+        command = next((item for item in self.__category_commands if item.get("id") == command_id), None)
+        if command != None:
+            if command.get("prefix"):
+                print(f"[{command.get("prefix")}]")
+                command.get("action")()
+            else:
+                command.get("action")()
+        else:
+            self.__show_error(1)
+
     def add_category(self):
-        pass
+        print("add_category")
 
     def edit_category(self):
-        pass
+        print("edit_category")
 
     def remove_category(self):
-        pass
+        print("remove_category")
