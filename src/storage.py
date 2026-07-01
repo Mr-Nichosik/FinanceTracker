@@ -27,7 +27,7 @@ class Storage:
         return op_list
 
     @staticmethod
-    def load_op(id) -> Operation | None:
+    def load_op(id: int) -> Operation | None:
         data = Storage.__raw_load()
         for i in data.get(Storage.__operationSectionTitle, []):
             if i.get("id") == id:
@@ -45,11 +45,21 @@ class Storage:
         Storage.__save_data(data)
 
     @staticmethod
-    def edit_op(operation: Operation):
-        pass
+    def edit_op(new_op_data: Operation) -> Operation:
+        data = Storage.__raw_load()
+        for i in data.get(Storage.__operationSectionTitle, []):
+            if i.get("id") == new_op_data.id:
+                i["type"] = new_op_data.type
+                i["category_id"] = new_op_data.category_id
+                i["title"] = new_op_data.title
+                i["amount"] = new_op_data.amount
+                i["date"] = new_op_data.date
+
+        Storage.__save_data(data)
+        return Storage.load_op(new_op_data.id)
 
     @staticmethod
-    def remove_op(id):
+    def remove_op(id: int):
         pass
 
     @staticmethod
@@ -72,7 +82,7 @@ class Storage:
         return cat_list
 
     @staticmethod
-    def load_cat(id) -> Category | None:
+    def load_cat(id: int) -> Category | None:
         data = Storage.__raw_load()
         for i in data.get(Storage.__categorySectionTitle, []):
             if i.get("id") == id:
@@ -90,8 +100,22 @@ class Storage:
         Storage.__save_data(data)
 
     @staticmethod
+    def edit_cat(id: int, title) -> Category:
+        data = Storage.__raw_load()
+        for i in data.get(Storage.__categorySectionTitle, []):
+            if i.get("id") == id:
+                i["title"] = title
+
+        Storage.__save_data(data)
+        return Storage.load_cat(id)
+
+    @staticmethod
     def get_cat_id_set() -> set[int]:
-        pass
+        data: list[Category] = Storage.load_all_cat()
+        id_set = set()
+        for i in data:
+            id_set.add(i.id)
+        return id_set
 
     @staticmethod
     def __raw_load() -> dict[str, list[dict]]:
