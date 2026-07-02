@@ -5,7 +5,6 @@ from format import *
 from operation import Operation
 from finance_manager import FinanceManager
 
-
 class Console:
     def __init__(self):
         self.__main_commands = [
@@ -72,6 +71,8 @@ class Console:
         self.__errors = [
             {"id": 0, "desc": "<UnexpectedError>"},
             {"id": 1, "desc": "<CommandNotFoundError>"},
+            {"id": 2, "desc": "<InvalidInputFormat>"},
+            {"id": 3, "desc": "<ValueMustBeANumber>"}
         ]
 
         self.manager = FinanceManager()
@@ -86,8 +87,8 @@ class Console:
             try:
                 command_id = int(self.__prompt())
                 return command_id
-            except Exception as e:
-                print("Неверный формат ввода")
+            except ValueError:
+                self.__show_error(3)
 
     def __run_menu(self, commands: list[dict], showWithPrefix=False, clearScreen=False):
         print("Доступные действия:")
@@ -141,8 +142,8 @@ class Console:
                 operation_id = int(self.__prompt())
                 self.__show_operation(self.manager.get_operation(operation_id))
                 return
-            except Exception as e:
-                print("Неверный формат ввода")
+            except ValueError:
+                self.__show_error(3)
 
     def __show_category(self, cat: Category):
         print(f"id: {cat.id} | название: {cat.title}")
@@ -159,65 +160,91 @@ class Console:
                 print("Укажите id:")
                 id = int(self.__prompt())
                 return id
-            except Exception as e:
-                print("Неверный формат ввода")
+            except ValueError:
+                self.__show_error(3)
 
     def __get_operation_data(self, allowNone=True) -> dict:
         op_data = dict()
 
         while True:
             print("Тип операции (1 - расход | 2 - доход):")
-            type = self.__prompt()
-            if type == "1":
+            value = self.__prompt()
+            if value == "":
+                if allowNone:
+                    op_data["type"] = None
+                    break
+            elif value == "1":
                 op_data["type"] = "расход"
                 break
-            elif type == "2":
+            elif value == "2":
                 op_data["type"] = "доход"
                 break
-            elif type == "":
-                op_data["type"] = None
-                break
-            print("Неверный формат операции")
+
+            self.__show_error(2)
 
         while True:
-            try:
-                print("Категория (id):")
-                type = self.__prompt()
-                if type == "": 
+            print("Категория:")
+            value = self.__prompt()
+            if value == "": 
+                if allowNone:
                     op_data["category_id"] = None
                     break
 
-                op_data["category_id"] = int(type)
+            elif not self.manager.category_exists(value):
+                print("Такой категории нет. Создать? (1-Y | Enter-изменить)")
+                an = self.__prompt()
+                if an == "1":
+                    op_data["category_id"] = self.manager.add_category(value).id
+                    break
+                continue
+            else:
+                op_data["category_id"] = self.manager.get_category_by_title(value).id
                 break
-            except Exception as e:
-                print("Неверный формат ввода")
 
-        print("Заголовок:")
-        type = self.__prompt()
-        if type == "":
-            op_data["title"] = None
-        else:
-            op_data["title"] = type
+            self.__show_error(2)
+
+        while True:
+            print("Заголовок:")
+            value = self.__prompt()
+
+            if value == "":
+                if allowNone:
+                    op_data["title"] = None
+                    break
+            else:
+                op_data["title"] = value
+                break
+
+            self.__show_error(2)
 
         while True:
             try:
                 print("Сумма (формат дробных чисел - 100.5)")
-                type = self.__prompt()
-                if type == "":
-                    op_data["amount"] = None
+                value = self.__prompt()
+                if value == "":
+                    if allowNone:
+                        op_data["amount"] = None
+                        break
+                else:
+                    op_data["amount"] = float(value)
                     break
 
-                op_data["amount"] = float(type)
-                break
-            except Exception as e:
-                print("Неверный формат ввода")
+                self.__show_error(2)
+            except ValueError:
+                self.__show_error(3)
 
-        print("Дата:")
-        type = self.__prompt()
-        if type == "":
-            op_data["date"] = None
-        else:
-            op_data["date"] = type
+        while True:
+            print("Дата:")
+            value = self.__prompt()
+            if value == "":
+                if allowNone:
+                    op_data["date"] = None
+                    break
+            else:
+                op_data["date"] = value
+                break
+
+            self.__show_error(2)
 
         return op_data
 
@@ -229,7 +256,7 @@ class Console:
             os.system("cls")
 
     def add_operation(self):
-        data = self.__get_operation_data()
+        data = self.__get_operation_data(False)
 
         self.__show_operation(
             self.manager.add_operation(
@@ -266,16 +293,16 @@ class Console:
         category = self.__prompt()
 
         print("Тип:")
-        type = self.__prompt()
+        type_value = self.__prompt()
 
-        info = [date, category, type]
+        info = [date, category, type_value]
         for i in range(len(info)):
             if not info[i].strip():
                 info[i] = None
 
-        date, category, type = info
+        date, category, value = info
 
-        data = self.manager.filter_operations(date, category, type)
+        data = self.manager.filter_operations(date, category, value)
         for i in data:
             self.__show_operation(i)
 

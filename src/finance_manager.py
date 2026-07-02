@@ -86,6 +86,17 @@ class FinanceManager:
     def get_category(self, id: int) -> Category:
         return Storage.load_cat(id)
 
+    def get_category_by_title(self, title: str) -> Category | None:
+        data = Storage.load_all_cat()
+        for i in data:
+            if i.title == title:
+                return i
+            
+        return None
+
+    def category_exists(self, title: str) -> bool:
+        return self.get_category_by_title(title) != None
+
     def edit_category(self, id, title) -> Category:    
         return Storage.edit_cat(id, title)
 
