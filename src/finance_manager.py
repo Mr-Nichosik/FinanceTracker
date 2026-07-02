@@ -19,13 +19,7 @@ class FinanceManager:
 
         return op
 
-    def get_all_operations(self) -> list[Operation]:
-        return Storage.load_all_op()
-    
-    def get_operation(self, id: int) -> Operation:
-        return Storage.load_op(id)
-
-    def edit_operation(self, old_op: Operation, new_op: dict) -> Operation:
+    def edit_operation(self, old_op: Operation, new_op: dict) -> Operation | None:
         if old_op.id != new_op.get("id"):
             print("Ошибка сопоставления id... хуй знает как")
             return
@@ -46,6 +40,18 @@ class FinanceManager:
             old_op.date = new_op.get("date")
 
         return Storage.edit_op(old_op)
+
+    def remove_operation(self, id: int):
+        Storage.remove_op(id)
+
+    def get_all_operations(self) -> list[Operation]:
+        return Storage.load_all_op()
+    
+    def get_operation(self, id: int) -> Operation | None:
+        return Storage.load_op(id)
+
+    def operation_exists(self, id) -> bool:
+        return self.get_operation(id) != None
 
     def filter_operations(self, period: str = None, category: str = None, type: str = None) -> list[Operation]:
         data = self.get_all_operations()
@@ -80,10 +86,16 @@ class FinanceManager:
 
         return cat
 
+    def edit_category(self, id, title) -> Category | None:    
+        return Storage.edit_cat(id, title)
+
+    def remove_category(self, id: int):
+        Storage.remove_cat(id)
+
     def get_all_categories(self) -> list[Category]:
         return Storage.load_all_cat()
 
-    def get_category(self, id: int) -> Category:
+    def get_category(self, id: int) -> Category | None:
         return Storage.load_cat(id)
 
     def get_category_by_title(self, title: str) -> Category | None:
@@ -94,11 +106,8 @@ class FinanceManager:
             
         return None
 
-    def category_exists(self, title: str) -> bool:
+    def category_exists_by_title(self, title: str) -> bool:
         return self.get_category_by_title(title) != None
 
-    def edit_category(self, id, title) -> Category:    
-        return Storage.edit_cat(id, title)
-
-    def remove_category(self, id: int):
-        pass
+    def category_exists(self, id: int) -> bool:
+        return self.get_category(id) != None

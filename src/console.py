@@ -68,18 +68,25 @@ class Console:
             },
         ]
 
-        self.__errors = [
-            {"id": 0, "desc": "<UnexpectedError>"},
-            {"id": 1, "desc": "<CommandNotFoundError>"},
-            {"id": 2, "desc": "<InvalidInputFormat>"},
-            {"id": 3, "desc": "<ValueMustBeANumber>"}
-        ]
+        self.__errors = {
+                0: "<UnexpectedError>",
+                1: "<CommandNotFoundError>",
+                2: "<InvalidInputFormat>",
+                3: "<ValueMustBeANumber>",
+                4: "<ObjectNotFoundError>"
+            }
+        
+        self.__messages = {
+                0: "Сохранено",
+                1: "Готово"
+            }
 
         self.manager = FinanceManager()
 
     def __prompt(self) -> str:
         data = input(f"{CYAN}>{RESET} {UNDERLINE}")
         print(f"{RESET}")
+
         return data
 
     def __input_command(self):
@@ -88,7 +95,7 @@ class Console:
                 command_id = int(self.__prompt())
                 return command_id
             except ValueError:
-                self.__show_error(3)
+                self.__show_message(self.__errors.get("3"))
 
     def __run_menu(self, commands: list[dict], showWithPrefix=False, clearScreen=False):
         print("Доступные действия:")
@@ -112,16 +119,15 @@ class Console:
                 print(f"[{command.get("prefix")}]")
             command.get("action")()
         else:
-            self.__show_error(1)
+            self.__show_message(self.__errors.get(1))
 
-    def __show_error(self, id: int):
-        for i in self.__errors:
-            if i.get("id") == id:
-                print(RED, i.get("desc"), RESET)
-                return
+    def __show_message(self, text: str, positive=False, description=""):
+        
+        color = GREEN if positive else RED
+        print(color, text, RESET)
 
-        # if the error id doesn't exist
-        print(RED, self.__errors[0].get("desc"), RESET)
+        if description != "":
+            print(BLUE, description, RESET)
 
     def __show_operation(self, op: Operation):
         category = self.manager.get_category(op.category_id)
@@ -143,7 +149,7 @@ class Console:
                 self.__show_operation(self.manager.get_operation(operation_id))
                 return
             except ValueError:
-                self.__show_error(3)
+                self.__show_message(self.__errors.get("3"))
 
     def __show_category(self, cat: Category):
         print(f"id: {cat.id} | название: {cat.title}")
@@ -161,7 +167,7 @@ class Console:
                 id = int(self.__prompt())
                 return id
             except ValueError:
-                self.__show_error(3)
+                self.__show_message(self.__errors.get(3))
 
     def __get_operation_data(self, allowNone=True) -> dict:
         op_data = dict()
@@ -180,7 +186,7 @@ class Console:
                 op_data["type"] = "доход"
                 break
 
-            self.__show_error(2)
+            self.__show_message(self.__errors.get(2))
 
         while True:
             print("Категория:")
@@ -190,7 +196,7 @@ class Console:
                     op_data["category_id"] = None
                     break
 
-            elif not self.manager.category_exists(value):
+            elif not self.manager.category_exists_by_title(value):
                 print("Такой категории нет. Создать? (1-Y | Enter-изменить)")
                 an = self.__prompt()
                 if an == "1":
@@ -201,7 +207,7 @@ class Console:
                 op_data["category_id"] = self.manager.get_category_by_title(value).id
                 break
 
-            self.__show_error(2)
+            self.__show_message(self.__errors.get(2))
 
         while True:
             print("Заголовок:")
@@ -215,7 +221,7 @@ class Console:
                 op_data["title"] = value
                 break
 
-            self.__show_error(2)
+            self.__show_message(self.__errors.get(2))
 
         while True:
             try:
@@ -229,9 +235,9 @@ class Console:
                     op_data["amount"] = float(value)
                     break
 
-                self.__show_error(2)
+                self.__show_message(self.__errors.get(2))
             except ValueError:
-                self.__show_error(3)
+                self.__show_message(self.__errors.get(3))
 
         while True:
             print("Дата:")
@@ -244,16 +250,27 @@ class Console:
                 op_data["date"] = value
                 break
 
-            self.__show_error(2)
+            self.__show_message(self.__errors.get(2))
 
         return op_data
 
     def run(self):
         while True:
-            self.__run_menu(self.__main_commands, False, True)
+            try:
+                self.__run_menu(self.__main_commands, False, True)
 
-            self.__prompt()
-            os.system("cls")
+                self.__prompt()
+                print(f"{RESET}")
+                os.system("cls")
+
+            except EOFError:
+                print(f"{RESET}")
+                os.system("cls")
+                self.__run_menu(self.__main_commands, False, True)
+
+            except KeyboardInterrupt:
+                print(BOLD, "Работа завершена")
+                raise SystemExit
 
     def add_operation(self):
         data = self.__get_operation_data(False)
@@ -267,10 +284,15 @@ class Console:
                 data.get("date"),
             )
         )
-        print(f"{GREEN}Сохранено{RESET}")
+        self.__show_message(self.__messages, True)
 
     def edit_operation(self):
         id = self.__get_id()
+
+        while self.manager.operation_exists(id) == False:
+            self.__show_message(self.__errors[4])
+            id = self.__get_id()
+
         old_op = self.manager.get_operation(id)
 
         print("Нажмите Enter, чтобы пропустить условие")
@@ -278,10 +300,17 @@ class Console:
         new_op["id"] = id
 
         self.__show_operation(self.manager.edit_operation(old_op, new_op))
-        print(f"{GREEN}Сохранено{RESET}")
+        self.__show_message(self.__messages[0], True)
 
     def remove_operation(self):
-        pass
+        id = self.__get_id()
+
+        while self.manager.operation_exists(id) == False:
+            self.__show_message(self.__errors[4])
+            id = self.__get_id()
+
+        self.manager.remove_operation(id)
+        self.__show_message(self.__messages[1], True) 
 
     def show_filtered_operations(self):
         print("Нажмите Enter, чтобы пропустить условие")
@@ -319,18 +348,29 @@ class Console:
         cat = self.manager.add_category(title)
 
         self.__show_category(cat)
-        print(f"{GREEN}Сохранено{RESET}")
+        self.__show_message(self.__messages[0], True)
 
     def edit_category(self):
         id = self.__get_id()
 
-        print("Укажите заголовок:")
-        title = self.__prompt()
+        while self.manager.category_exists(id) == False:
+            self.__show_message(self.__errors[4])
+            id = self.__get_id()
 
-        cat = self.manager.edit_category(id, title)
+        print("Укажите заголовок:")
+        title = self.__prompt()  
+
+        cat = self.manager.edit_category(id, title)         
 
         self.__show_category(cat)
-        print(f"{GREEN}Сохранено{RESET}")
+        self.__show_message(self.__messages[0], True)
 
     def remove_category(self):
-        print("remove_category")
+        id = self.__get_id()
+
+        while self.manager.category_exists(id) == False:
+            self.__show_message(self.__errors[4])
+            id = self.__get_id()
+
+        self.manager.remove_category(id)
+        self.__show_message(self.__messages[1], True)

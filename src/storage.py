@@ -60,7 +60,10 @@ class Storage:
 
     @staticmethod
     def remove_op(id: int):
-        pass
+        data = Storage.__raw_load()
+        new_data = [op for op in data.get(Storage.__operationSectionTitle, []) if op.get("id") != id]
+        data[Storage.__operationSectionTitle] = new_data
+        Storage.__save_data(data)
 
     @staticmethod
     def get_op_id_set() -> set[int]:
@@ -100,7 +103,7 @@ class Storage:
         Storage.__save_data(data)
 
     @staticmethod
-    def edit_cat(id: int, title) -> Category:
+    def edit_cat(id: int, title) -> Category | None:
         data = Storage.__raw_load()
         for i in data.get(Storage.__categorySectionTitle, []):
             if i.get("id") == id:
@@ -108,6 +111,13 @@ class Storage:
 
         Storage.__save_data(data)
         return Storage.load_cat(id)
+
+    @staticmethod
+    def remove_cat(id: int):
+        data = Storage.__raw_load()
+        new_categories = [cat for cat in data.get(Storage.__categorySectionTitle, []) if cat.get("id") != id]
+        data[Storage.__categorySectionTitle] = new_categories
+        Storage.__save_data(data)
 
     @staticmethod
     def get_cat_id_set() -> set[int]:
@@ -148,7 +158,7 @@ class Storage:
         Storage.__check_file()
 
         try:
-            with open(Storage.__fileName, "r") as file:
+            with open(Storage.__fileName, "r", encoding="utf-8") as file:
                 data: dict[str, list] = json.load(file)
 
             if Storage.__operationSectionTitle in data and Storage.__categorySectionTitle in data: return
@@ -171,5 +181,5 @@ class Storage:
             Storage.__create_file()
 
 if __name__ == "__main__":
-    print(Storage.load_all_cat())
+    pass
         
