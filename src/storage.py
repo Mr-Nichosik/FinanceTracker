@@ -180,6 +180,16 @@ class Storage:
             Storage.__creat_backup()
             Storage.__create_file()
 
+    @staticmethod
+    def get_category_amount(cat_id: int) -> float:
+        data = Storage.load_all_op()
+        amount = 0
+        for i in data:
+            if i.category_id == cat_id:
+                amount += i.amount
+
+        return amount
+
 if __name__ == "__main__":
     pass
         

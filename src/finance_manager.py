@@ -1,7 +1,9 @@
 
 from category import Category
 from operation import *
+from operation import Operation
 from storage import Storage
+from typing import Literal
 
 class FinanceManager:
     def __init__(self):
@@ -54,14 +56,14 @@ class FinanceManager:
         return self.get_operation(id) != None
 
     def filter_operations(self, period: str = None, category: str = None, type: str = None) -> list[Operation]:
-        data = self.get_all_operations()
+        data: list[Operation] = self.get_all_operations()
         filtered = []
 
         for op in data:
             if period and period not in op.date:
                 continue
             
-            if category and category.lower() != op.category.lower():
+            if category and category.lower() != op.category_id:
                 continue
             
             if type and type.lower() != op.type.lower():
@@ -71,8 +73,23 @@ class FinanceManager:
 
         return filtered
     
-    def get_balance(self):
-        pass
+    def get_balance(self) -> dict:
+        lst = dict()
+        income = self.get_amount_by_op_type("доход")
+        expenses = self.get_amount_by_op_type("расход")
+        lst["income"] = income
+        lst["expenses"] = expenses
+        lst["balance"] = income-expenses
+        return lst
+    
+    def get_amount_by_op_type(self, op_type: Literal["доход", "расход"]) -> float:
+        amount = 0
+        data = self.get_all_operations()
+        for i in data:
+            if i.type == op_type:
+                amount += i.amount
+
+        return amount     
 
     def add_category(self, title) -> Category:
         id_set = Storage.get_cat_id_set()
@@ -122,6 +139,18 @@ class FinanceManager:
         
         return len(lst)
     
+    def get_amount_by_categories(self, op_type: Literal["доход", "расход"]) -> dict[int, float]:
+        cats = self.get_all_categories()
+        ops = self.get_all_operations()
+
+        data = {cat.id: 0 for cat in cats}
+
+        for op in ops:
+            if op.type == op_type:
+                data[op.category_id] += op.amount
+
+        return data
+
 if __name__ == "__main__":
-    manager = FinanceManager()
-    print(manager.category_linked(4))
+    man = FinanceManager()
+    print(man.get_amount_by_categories("доход"))

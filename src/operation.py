@@ -9,7 +9,7 @@ class Operation:
         self.date: str = date
 
     def to_dict(self) -> dict:
-        return {"id": self.id, "type": self.type, "category_id": self.category_id, "title": self.title, "amount": self.amount, "date": self.date}
+        return {"id": self.id, "type": self.type.lower(), "category_id": self.category_id, "title": self.title, "amount": self.amount, "date": self.date}
     
     @staticmethod
     def from_dict(data: dict) -> Operation:

@@ -1,5 +1,6 @@
 
 import os
+from datetime import date
 from category import Category
 from format import *
 from operation import Operation
@@ -49,6 +50,18 @@ class Console:
                 "desc": "Управление категориями",
                 "prefix": None,
                 "action": self.categories_control,
+            },
+            {
+                "id": 6,
+                "desc": "Показать баланс",
+                "prefix": None,
+                "action": self.show_balance,
+            },
+            {
+                "id": 7,
+                "desc": "Показать статистику по категориям",
+                "prefix": None,
+                "action": self.show_statistics_by_categories,
             },
         ]
 
@@ -132,7 +145,7 @@ class Console:
     def __show_operation(self, op: Operation):
         category = self.manager.get_category(op.category_id)
         print(
-            f"сумма: {op.amount} | тип: {op.type} | категория: {category.title} | дата: {op.date} | ID: {op.id} | описание: {op.title}"
+            f"{op.type} от {op.date} на сумму {op.amount} в категории {category.title} | ID: {op.id} | детали: {op.title}"
         )
 
     def __show_all_operations(self):
@@ -246,13 +259,17 @@ class Console:
                 if allowNone:
                     op_data["date"] = None
                     break
+                else:
+                    op_data["date"] = str(date.today().strftime("%d.%m.%Y"))
+                    break
             else:
                 op_data["date"] = value
                 break
 
-            self.__show_message(self.__errors.get(2))
-
         return op_data
+
+    def __show_stats(self, cat_id: int, amount: float):
+        print(f"{self.manager.get_category(cat_id).title}: {amount}")
 
     def run(self):
         while True:
@@ -284,7 +301,7 @@ class Console:
                 data.get("date"),
             )
         )
-        self.__show_message(self.__messages, True)
+        self.__show_message(self.__messages[0], True)
 
     def edit_operation(self):
         id = self.__get_id()
@@ -379,3 +396,26 @@ class Console:
 
         self.manager.remove_category(id)
         self.__show_message(self.__messages[1], True)
+
+    def show_balance(self):
+        data = self.manager.get_balance()
+
+        print(f"Доходы: {data["income"]}")
+        print(f"Расходы: {data["expenses"]}")
+
+        print(f"{RED}Баланс: {data["balance"]}{RESET}") if data["balance"] < 0 else print(f"{GREEN}Баланс: {data["balance"]}{RESET}")
+
+    def show_statistics_by_categories(self):
+        income = self.manager.get_amount_by_categories("доход")
+        print(f"{BOLD}Доходы:{RESET}")
+        for cat_id in income:
+            self.__show_stats(cat_id, income.get(cat_id))
+        print(f"{BOLD}Итого: {self.manager.get_amount_by_op_type("доход")}{RESET}")
+
+        print()
+
+        expenses = self.manager.get_amount_by_categories("расход")
+        print(f"{BOLD}Расходы:{RESET}")
+        for cat_id in expenses:
+            self.__show_stats(cat_id, expenses.get(cat_id))
+        print(f"{BOLD}Итого: {self.manager.get_amount_by_op_type("расход")}{RESET}")
