@@ -372,5 +372,10 @@ class Console:
             self.__show_message(self.__errors[4])
             id = self.__get_id()
 
+        linked_operations = self.manager.category_linked(id)
+        if linked_operations != 0:
+            self.__show_message(f"Выбранная категория связана с несколькими операциями ({linked_operations})", description="Отредактируйте операции для удаления категорий")
+            return
+
         self.manager.remove_category(id)
         self.__show_message(self.__messages[1], True)

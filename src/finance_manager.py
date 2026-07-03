@@ -111,3 +111,17 @@ class FinanceManager:
 
     def category_exists(self, id: int) -> bool:
         return self.get_category(id) != None
+    
+    def category_linked(self, id: int) -> int:
+        data = self.get_all_operations()
+        lst = []
+
+        for i in data:
+            if i.category_id == id:
+                lst.append(i)
+        
+        return len(lst)
+    
+if __name__ == "__main__":
+    manager = FinanceManager()
+    print(manager.category_linked(4))
