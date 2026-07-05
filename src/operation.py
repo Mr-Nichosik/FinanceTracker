@@ -37,7 +37,7 @@ class Operation:
         data["type"] = OperationType(data["type"])
         return Operation(**data)
 
-OPERATION_FIELDS = {f.name for f in fields(Operation) if f.name != "id"}
+OPERATION_FIELDS: set[str] = {f.name for f in fields(Operation) if f.name != "id"}
 
 class OperationData(TypedDict):
     id: int

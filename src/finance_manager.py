@@ -3,7 +3,8 @@ from category import Category
 from operation import *
 from operation import Operation, OperationUpdate, OperationData, OPERATION_FIELDS
 from storage import Storage
-from typing import Literal
+
+
 
 class FinanceManager:
     def __init__(self):
@@ -67,14 +68,14 @@ class FinanceManager:
     
     def get_balance(self) -> dict:
         lst = dict()
-        income = self.get_amount_by_op_type("доход")
-        expenses = self.get_amount_by_op_type("расход")
+        income = self.get_amount_by_op_type(OperationType.INCOME)
+        expenses = self.get_amount_by_op_type(OperationType.EXPENSE)
         lst["income"] = income
         lst["expenses"] = expenses
         lst["balance"] = income-expenses
         return lst
     
-    def get_amount_by_op_type(self, op_type: Literal["доход", "расход"]) -> float:
+    def get_amount_by_op_type(self, op_type: OperationType) -> float:
         amount = 0
         data = self.get_all_operations()
         for i in data:
