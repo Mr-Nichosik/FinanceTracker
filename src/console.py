@@ -4,7 +4,7 @@ from datetime import date
 from category import Category
 from format import *
 from operation import Operation, OperationUpdate, OperationData, OperationType
-from finance_manager import FinanceManager, Balance
+from finance_manager import FinanceManager, Balance, SortType
 
 class Console:
     def __init__(self):
@@ -85,6 +85,12 @@ class Console:
                 "prefix": None,
                 "action": self.remove_category,
             },
+        ]
+
+        self.__sort_types = [
+            {"id": 1, "desc": "По дате - 1", "action": SortType.DATE},
+            {"id": 2, "desc": "По сумме - 2", "action": SortType.AMOUNT},
+            {"id": 3, "desc": "По категории - 3", "action": SortType.CATEGORY},
         ]
 
         self.__errors = {
@@ -264,6 +270,10 @@ class Console:
     def __show_stats(self, cat_id: int, amount: float):
         print(f"{self.manager.get_category(cat_id).title}: {amount}")
 
+    def __show_actions_list(self, actions: list[dict]):
+        for i in actions:
+            print(i.get("desc"))
+
     def run(self):
         while True:
             try:
@@ -323,17 +333,28 @@ class Console:
         print("Категория:")
         category = self.__prompt()
 
-        print("Тип:")
+        print("Тип операции (1 - расход | 2 - доход):")
         type_value = self.__prompt()
+
+        print("Сортировать:")   
+        while True:
+            self.__show_actions_list(self.__sort_types)
+            sort_type_id = self.__prompt()
+            
+            if sort_type_id != "" and SortType.get_type(sort_type_id) != None:
+                sort_type = SortType.get_type(sort_type_id)
+                break
+
+            self.__show_message(self.__errors.get(2))
 
         info = [date, category, type_value]
         for i in range(len(info)):
             if not info[i].strip():
                 info[i] = None
 
-        date, category, value = info
+        date, category, type_value = info
 
-        data = self.manager.filter_operations(date, category, value)
+        data = self.manager.filter_operations(date, category, type_value, sort_type)
         for i in data:
             self.__show_operation(i)
 
@@ -383,7 +404,7 @@ class Console:
         self.__show_message(self.__messages[1], True)
 
     def show_balance(self):
-        data = self.manager.get_balance()
+        data: Balance = self.manager.get_balance()
 
         print(f"Доходы: {data["income"]}")
         print(f"Расходы: {data["expenses"]}")

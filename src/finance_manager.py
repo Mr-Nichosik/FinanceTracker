@@ -1,14 +1,33 @@
 
+from __future__ import annotations
+
 from category import Category
 from operation import Operation, OperationUpdate, OperationData, OPERATION_FIELDS, OperationType
 from storage import Storage
 from typing import TypedDict
 from datetime import datetime
+from enum import StrEnum
 
 class Balance(TypedDict):
     income: float
     expenses: float
     balance: float
+
+class SortType(StrEnum):
+    DATE = "date"
+    AMOUNT = "amount"
+    CATEGORY = "category"
+
+    @staticmethod
+    def get_type(id: str | int) -> SortType | None:
+        return {
+            "1": SortType.DATE, 
+            "2": SortType.AMOUNT,
+            "3": SortType.CATEGORY,
+            1: SortType.DATE, 
+            2: SortType.AMOUNT,
+            3: SortType.CATEGORY
+        }.get(id)
 
 class FinanceManager:
     def __init__(self):
@@ -52,7 +71,7 @@ class FinanceManager:
     def get_operation_update_template(self, id: int = 0) -> OperationUpdate:
         return Operation.blank_update(id)
 
-    def filter_operations(self, period: str = None, category_title: str = None, type: str = None) -> list[Operation]:
+    def filter_operations(self, period: str = None, category_title: str = None, type_id: str | int = None, sort_type: SortType = SortType.DATE) -> list[Operation]:
         data: list[Operation] = self.get_all_operations()
         filtered = []
 
@@ -63,12 +82,17 @@ class FinanceManager:
             if category_title and category_title != self.get_category(op.category_id).title:
                 continue
             
-            if type and type.lower() != op.type.lower():
+            if type_id and OperationType.get_type(type_id) != op.type:
                 continue
 
             filtered.append(op)
 
-        return filtered
+        if sort_type == SortType.DATE:
+            return self.sort_by_date(filtered)
+        elif sort_type == SortType.AMOUNT:
+            return self.sort_by_amount(filtered)
+        elif sort_type == SortType.CATEGORY:
+            return self.sort_by_category(filtered)
     
     def get_balance(self) -> Balance:
         income = self.get_amount_by_op_type(OperationType.INCOME)
@@ -147,6 +171,12 @@ class FinanceManager:
 
     def sort_by_date(self, data: list[Operation]) -> list[Operation]:
         return sorted(data, key=lambda op: datetime.strptime(op.date, "%d.%m.%Y"))
+
+    def sort_by_amount(self, data: list[Operation]) -> list[Operation]:
+        return sorted(data, key=lambda op: op.amount)
+
+    def sort_by_category(self, data: list[Operation]) -> list[Operation]:
+        return sorted(data, key=lambda op: self.get_category(op.category_id).title)
 
     def get_n_operations(self, n: int) -> list[Operation]:
         data = self.sort_by_date(self.get_all_operations())

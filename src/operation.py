@@ -1,4 +1,6 @@
 
+from __future__ import annotations
+
 from dataclasses import dataclass, fields, asdict
 from typing import TypedDict
 from enum import StrEnum
