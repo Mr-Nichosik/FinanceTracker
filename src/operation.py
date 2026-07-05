@@ -1,16 +1,42 @@
 
-class Operation:
-    def __init__(self, id=0, type="expense", category_id=1, title="default_title", amount=100, date="28.06.2026"):
-        self.id = id
-        self.type: str = type
-        self.category_id: int = category_id
-        self.title: str = title
-        self.amount: float = amount
-        self.date: str = date
+from dataclasses import dataclass, fields, asdict
+from typing import TypedDict
 
-    def to_dict(self) -> dict:
-        return {"id": self.id, "type": self.type.lower(), "category_id": self.category_id, "title": self.title, "amount": self.amount, "date": self.date}
+class OperationData(TypedDict):
+    id: int
+    type: str
+    category_id: int
+    title: str
+    amount: float
+    date: str
+
+class OperationUpdate(TypedDict):
+    id: int
+    type: str | None
+    category_id: int | None
+    title: str | None
+    amount: float | None
+    date: str | None
+
+@dataclass
+class Operation:
+    id: int = 0
+    type: str = "расход"
+    category_id: int = 1
+    title: str = "default_title"
+    amount: float = 0
+    date: str = "01.01.1970"
+
+    @staticmethod
+    def blank_update(id: int = 0) -> OperationUpdate:
+        return {f.name: None for f in fields(Operation) if f.name != "id"} | {"id": id}
+
+    def to_dict(self) -> OperationData:
+        return asdict(self)
     
     @staticmethod
-    def from_dict(data: dict) -> Operation:
-        return Operation(data.get("id"), data.get("type"), data.get("category_id"), data.get("title"), data.get("amount"), data.get("date"))
+    def from_dict(data: OperationData) -> Operation:
+        return Operation(**data)
+    
+
+OPERATION_FIELDS = {f.name for f in fields(Operation) if f.name != "id"}

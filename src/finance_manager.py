@@ -1,7 +1,7 @@
 
 from category import Category
 from operation import *
-from operation import Operation
+from operation import Operation, OperationUpdate, OperationData, OPERATION_FIELDS
 from storage import Storage
 from typing import Literal
 
@@ -9,37 +9,26 @@ class FinanceManager:
     def __init__(self):
         Storage.ensure_structure()
 
-    def add_operation(self, type, category, title, amount, date) -> Operation:
+    def add_operation(self, data: OperationData) -> Operation:
         id_set = Storage.get_op_id_set()
         if len(id_set) == 0:
-            id = 1
+            data["id"] = 1
         else:
-            id = max(id_set) + 1
+            data["id"] = max(id_set) + 1
 
-        op = Operation(id, type, category, title, amount, date)
+        op = Operation(**data)
         Storage.save_op(op)
 
         return op
 
-    def edit_operation(self, old_op: Operation, new_op: dict) -> Operation | None:
-        if old_op.id != new_op.get("id"):
-            print("Ошибка сопоставления id... хуй знает как")
+    def edit_operation(self, old_op: Operation, new_data: OperationUpdate) -> Operation | None:
+        if old_op.id != new_data["id"]:
+            print("FinanceManager log: edit_operation: id compression error")
             return
         
-        if new_op.get("type") != None:
-            old_op.type = new_op.get("type")
-        
-        if new_op.get("category_id") != None:
-            old_op.category_id = new_op.get("category_id")
-
-        if new_op.get("title") != None:
-            old_op.title = new_op.get("title")
-
-        if new_op.get("amount") != None:
-            old_op.amount = new_op.get("amount")
-
-        if new_op.get("date") != None:
-            old_op.date = new_op.get("date")
+        for field in OPERATION_FIELDS:
+            if new_data[field] is not None:
+                setattr(old_op, field, new_data[field])
 
         return Storage.edit_op(old_op)
 
@@ -55,7 +44,10 @@ class FinanceManager:
     def operation_exists(self, id) -> bool:
         return self.get_operation(id) != None
 
-    def filter_operations(self, period: str = None, category: str = None, type: str = None) -> list[Operation]:
+    def get_operation_update_template(self, id: int = 0) -> OperationUpdate:
+        return Operation.blank_update(id)
+
+    def filter_operations(self, period: str = None, category_title: str = None, type: str = None) -> list[Operation]:
         data: list[Operation] = self.get_all_operations()
         filtered = []
 
@@ -63,7 +55,7 @@ class FinanceManager:
             if period and period not in op.date:
                 continue
             
-            if category and category.lower() != op.category_id:
+            if category_title and category_title != self.get_category(op.category_id).title:
                 continue
             
             if type and type.lower() != op.type.lower():
@@ -143,7 +135,7 @@ class FinanceManager:
         cats = self.get_all_categories()
         ops = self.get_all_operations()
 
-        data = {cat.id: 0 for cat in cats}
+        data = {cat.id: 0.0 for cat in cats}
 
         for op in ops:
             if op.type == op_type:

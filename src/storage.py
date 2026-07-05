@@ -5,7 +5,7 @@ import os
 import shutil
 import json
 
-from operation import Operation
+from operation import Operation, OperationData, OPERATION_FIELDS
 
 class Storage:
     __currentFolder = os.path.dirname(os.path.abspath(__file__))
@@ -17,20 +17,13 @@ class Storage:
 
     @staticmethod
     def load_all_op() -> list[Operation]:
-        op_list = []
-
-        data = Storage.__raw_load()
-        for i in data.get(Storage.__operationSectionTitle, []):
-            i: Operation = Operation.from_dict(i)
-            op_list.append(i)
-
-        return op_list
+        return [Operation.from_dict(op) for op in Storage.__raw_load().get(Storage.__operationSectionTitle, [])]
 
     @staticmethod
     def load_op(id: int) -> Operation | None:
-        data = Storage.__raw_load()
-        for i in data.get(Storage.__operationSectionTitle, []):
-            if i.get("id") == id:
+        data: list[OperationData] = Storage.__raw_load().get(Storage.__operationSectionTitle, [])
+        for i in data:
+            if i["id"] == id:
                 return Operation.from_dict(i)
         
         return None
@@ -45,15 +38,14 @@ class Storage:
         Storage.__save_data(data)
 
     @staticmethod
-    def edit_op(new_op_data: Operation) -> Operation:
+    def edit_op(new_op_data: Operation) -> Operation | None:
         data = Storage.__raw_load()
-        for i in data.get(Storage.__operationSectionTitle, []):
-            if i.get("id") == new_op_data.id:
-                i["type"] = new_op_data.type
-                i["category_id"] = new_op_data.category_id
-                i["title"] = new_op_data.title
-                i["amount"] = new_op_data.amount
-                i["date"] = new_op_data.date
+        ops: list[OperationData] = [op for op in data.get(Storage.__operationSectionTitle, [])]
+
+        for i in ops:
+            if i["id"] == new_op_data.id:
+                for field in OPERATION_FIELDS:
+                    i[field] = getattr(new_op_data, field, i[field])
 
         Storage.__save_data(data)
         return Storage.load_op(new_op_data.id)
@@ -61,7 +53,7 @@ class Storage:
     @staticmethod
     def remove_op(id: int):
         data = Storage.__raw_load()
-        new_data = [op for op in data.get(Storage.__operationSectionTitle, []) if op.get("id") != id]
+        new_data = [op for op in data.get(Storage.__operationSectionTitle, []) if op["id"] != id]
         data[Storage.__operationSectionTitle] = new_data
         Storage.__save_data(data)
 
@@ -128,7 +120,7 @@ class Storage:
         return id_set
 
     @staticmethod
-    def __raw_load() -> dict[str, list[dict]]:
+    def __raw_load() -> dict[str, list]:
         Storage.ensure_structure()
 
         with open(Storage.__fileName, "r", encoding="utf-8") as file:

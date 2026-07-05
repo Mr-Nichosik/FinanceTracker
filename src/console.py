@@ -3,7 +3,7 @@ import os
 from datetime import date
 from category import Category
 from format import *
-from operation import Operation
+from operation import Operation, OperationUpdate, OperationData
 from finance_manager import FinanceManager
 
 class Console:
@@ -182,16 +182,14 @@ class Console:
             except ValueError:
                 self.__show_message(self.__errors.get(3))
 
-    def __get_operation_data(self, allowNone=True) -> dict:
-        op_data = dict()
+    def __get_operation_data(self, allowNone=True) -> OperationUpdate | OperationData:
+        op_data = self.manager.get_operation_update_template()
 
         while True:
             print("Тип операции (1 - расход | 2 - доход):")
             value = self.__prompt()
             if value == "":
-                if allowNone:
-                    op_data["type"] = None
-                    break
+                if allowNone: break
             elif value == "1":
                 op_data["type"] = "расход"
                 break
@@ -205,10 +203,7 @@ class Console:
             print("Категория:")
             value = self.__prompt()
             if value == "": 
-                if allowNone:
-                    op_data["category_id"] = None
-                    break
-
+                if allowNone: break
             elif not self.manager.category_exists_by_title(value):
                 print("Такой категории нет. Создать? (1-Y | Enter-изменить)")
                 an = self.__prompt()
@@ -227,9 +222,7 @@ class Console:
             value = self.__prompt()
 
             if value == "":
-                if allowNone:
-                    op_data["title"] = None
-                    break
+                if allowNone: break
             else:
                 op_data["title"] = value
                 break
@@ -241,9 +234,7 @@ class Console:
                 print("Сумма (формат дробных чисел - 100.5)")
                 value = self.__prompt()
                 if value == "":
-                    if allowNone:
-                        op_data["amount"] = None
-                        break
+                    if allowNone: break
                 else:
                     op_data["amount"] = float(value)
                     break
@@ -256,9 +247,7 @@ class Console:
             print("Дата:")
             value = self.__prompt()
             if value == "":
-                if allowNone:
-                    op_data["date"] = None
-                    break
+                if allowNone: break
                 else:
                     op_data["date"] = str(date.today().strftime("%d.%m.%Y"))
                     break
@@ -290,17 +279,9 @@ class Console:
                 raise SystemExit
 
     def add_operation(self):
-        data = self.__get_operation_data(False)
+        data: OperationData = self.__get_operation_data(False)
 
-        self.__show_operation(
-            self.manager.add_operation(
-                data.get("type"),
-                data.get("category_id"),
-                data.get("title"),
-                data.get("amount"),
-                data.get("date"),
-            )
-        )
+        self.__show_operation(self.manager.add_operation(data))
         self.__show_message(self.__messages[0], True)
 
     def edit_operation(self):
