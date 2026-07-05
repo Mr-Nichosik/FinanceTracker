@@ -161,8 +161,9 @@ class Console:
         )
 
     def __show_all_operations(self):
-        data: list[Operation] = self.manager.sort_by_date(self.manager.get_all_operations())
+        self.__show_operations_list(self.manager.sort_by_date(self.manager.get_all_operations()))
 
+    def __show_operations_list(self, data: list[Operation]):
         for i in data:
             self.__show_operation(i)
 
@@ -180,8 +181,9 @@ class Console:
         print(f"id: {cat.id} | название: {cat.title}")
 
     def __show_all_categories(self):
-        data: list[Category] = self.manager.get_all_categories()
+        self.__show_category_list(self.manager.get_all_categories())
 
+    def __show_category_list(self, data: list[Category]):
         for i in data:
             self.__show_category(i)
 
@@ -354,9 +356,7 @@ class Console:
 
         date, category, type_value = info
 
-        data = self.manager.filter_operations(date, category, type_value, sort_type)
-        for i in data:
-            self.__show_operation(i)
+        self.__show_operations_list(self.manager.filter_operations(date, category, type_value, sort_type))
 
     def categories_control(self):
         print("Список категорий:")
@@ -437,6 +437,4 @@ class Console:
             except ValueError:
                 self.__show_message(self.__errors.get(3))
 
-        data = self.manager.get_n_operations(n)
-        for i in data:
-            self.__show_operation(i)
+        self.__show_operations_list(self.manager.get_n_operations(n))

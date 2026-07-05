@@ -34,12 +34,8 @@ class FinanceManager:
         Storage.ensure_structure()
 
     def add_operation(self, data: OperationData) -> Operation:
-        id_set = Storage.get_op_id_set()
-        if len(id_set) == 0:
-            data["id"] = 1
-        else:
-            data["id"] = max(id_set) + 1
-
+        data["id"] = self.__create_id(Storage.get_op_id_set())
+        
         op = Operation(**data)
         Storage.save_op(op)
 
@@ -110,13 +106,7 @@ class FinanceManager:
         return amount     
 
     def add_category(self, title) -> Category:
-        id_set = Storage.get_cat_id_set()
-        if len(id_set) == 0:
-            id = 1
-        else:
-            id = max(id_set) + 1
-
-        cat = Category(id, title)
+        cat = Category(self.__create_id(Storage.get_cat_id_set()), title)
         Storage.save_cat(cat)
 
         return cat
@@ -134,7 +124,7 @@ class FinanceManager:
         return Storage.load_cat(id)
 
     def get_category_by_title(self, title: str) -> Category | None:
-        data = Storage.load_all_cat()
+        data = self.get_all_categories()
         for i in data:
             if i.title == title:
                 return i
@@ -182,6 +172,10 @@ class FinanceManager:
         data = self.sort_by_date(self.get_all_operations())
 
         return data[-n:]
+
+    def __create_id(self, id_set: set) -> int:
+        if len(id_set) == 0: return 1
+        else: return max(id_set) + 1
 
 if __name__ == "__main__":
     man = FinanceManager()
