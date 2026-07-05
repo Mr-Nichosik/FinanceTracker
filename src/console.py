@@ -63,6 +63,12 @@ class Console:
                 "prefix": None,
                 "action": self.show_statistics_by_categories,
             },
+            {
+                "id": 8,
+                "desc": "Показать последние N операций",
+                "prefix": None,
+                "action": self.show_last_n_operations,
+            },
         ]
 
         self.__category_commands = [
@@ -149,7 +155,7 @@ class Console:
         )
 
     def __show_all_operations(self):
-        data: list[Operation] = self.manager.get_all_operations()
+        data: list[Operation] = self.manager.sort_by_date(self.manager.get_all_operations())
 
         for i in data:
             self.__show_operation(i)
@@ -398,3 +404,18 @@ class Console:
         for cat_id in expenses:
             self.__show_stats(cat_id, expenses.get(cat_id))
         print(f"{BOLD}Итого: {self.manager.get_amount_by_op_type(OperationType.EXPENSE)}{RESET}")
+
+    def show_last_n_operations(self):
+        while True:
+            try:
+                print("Укажите количество операций:")
+                n = int(self.__prompt())
+                if n > 0:
+                    break
+                self.__show_message(self.__errors.get(3))
+            except ValueError:
+                self.__show_message(self.__errors.get(3))
+
+        data = self.manager.get_n_operations(n)
+        for i in data:
+            self.__show_operation(i)

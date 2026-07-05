@@ -3,6 +3,7 @@ from category import Category
 from operation import Operation, OperationUpdate, OperationData, OPERATION_FIELDS, OperationType
 from storage import Storage
 from typing import TypedDict
+from datetime import datetime
 
 class Balance(TypedDict):
     income: float
@@ -143,6 +144,14 @@ class FinanceManager:
                 data[op.category_id] += op.amount
 
         return data
+
+    def sort_by_date(self, data: list[Operation]) -> list[Operation]:
+        return sorted(data, key=lambda op: datetime.strptime(op.date, "%d.%m.%Y"))
+
+    def get_n_operations(self, n: int) -> list[Operation]:
+        data = self.sort_by_date(self.get_all_operations())
+
+        return data[-n:]
 
 if __name__ == "__main__":
     man = FinanceManager()
