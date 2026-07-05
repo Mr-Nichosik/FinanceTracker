@@ -4,7 +4,7 @@ from datetime import date
 from category import Category
 from format import *
 from operation import Operation, OperationUpdate, OperationData, OperationType
-from finance_manager import FinanceManager
+from finance_manager import FinanceManager, Balance
 
 class Console:
     def __init__(self):

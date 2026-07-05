@@ -1,10 +1,13 @@
 
 from category import Category
-from operation import *
-from operation import Operation, OperationUpdate, OperationData, OPERATION_FIELDS
+from operation import Operation, OperationUpdate, OperationData, OPERATION_FIELDS, OperationType
 from storage import Storage
+from typing import TypedDict
 
-
+class Balance(TypedDict):
+    income: float
+    expenses: float
+    balance: float
 
 class FinanceManager:
     def __init__(self):
@@ -66,14 +69,11 @@ class FinanceManager:
 
         return filtered
     
-    def get_balance(self) -> dict:
-        lst = dict()
+    def get_balance(self) -> Balance:
         income = self.get_amount_by_op_type(OperationType.INCOME)
         expenses = self.get_amount_by_op_type(OperationType.EXPENSE)
-        lst["income"] = income
-        lst["expenses"] = expenses
-        lst["balance"] = income-expenses
-        return lst
+        balance = income-expenses
+        return Balance(income, expenses, balance)
     
     def get_amount_by_op_type(self, op_type: OperationType) -> float:
         amount = 0
