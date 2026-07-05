@@ -138,14 +138,12 @@ class FinanceManager:
         return self.get_category(id) != None
     
     def category_linked(self, id: int) -> int:
-        data = self.get_all_operations()
-        lst = []
-
-        for i in data:
-            if i.category_id == id:
-                lst.append(i)
+        """
+        checks if category is linked with any operations.
+        if it is not, returns 0
+        """
         
-        return len(lst)
+        return len([op for op in self.get_all_operations() if op.id == id])  
     
     def get_amount_by_categories(self, op_type: OperationType) -> dict[int, float]:
         cats = self.get_all_categories()
