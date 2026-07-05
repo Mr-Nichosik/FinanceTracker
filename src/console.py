@@ -120,7 +120,7 @@ class Console:
                 command_id = int(self.__prompt())
                 return command_id
             except ValueError:
-                self.__show_message(self.__errors.get("3"))
+                self.__show_message(self.__errors.get(3))
 
     def __run_menu(self, commands: list[dict], showWithPrefix=False, clearScreen=False):
         print("Доступные действия:")
@@ -175,7 +175,7 @@ class Console:
                 self.__show_operation(self.manager.get_operation(operation_id))
                 return
             except ValueError:
-                self.__show_message(self.__errors.get("3"))
+                self.__show_message(self.__errors.get(3))
 
     def __show_category(self, cat: Category):
         print(f"id: {cat.id} | название: {cat.title}")
