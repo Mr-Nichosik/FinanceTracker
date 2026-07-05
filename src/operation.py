@@ -3,10 +3,23 @@ from dataclasses import dataclass, fields, asdict
 from typing import TypedDict
 from enum import StrEnum
 
+class OperationType(StrEnum):
+    EXPENSE = "расход"
+    INCOME = "доход"
+
+    @staticmethod
+    def get_type(id: str | int) -> OperationType | None:
+        return {
+            "1": OperationType.EXPENSE, 
+            "2": OperationType.INCOME, 
+            1: OperationType.EXPENSE, 
+            2: OperationType.INCOME
+        }.get(id)
+
 @dataclass
 class Operation:
     id: int = 0
-    type: str = "расход"
+    type: OperationType = OperationType.EXPENSE
     category_id: int = 1
     title: str = "default_title"
     amount: float = 0
@@ -21,6 +34,7 @@ class Operation:
     
     @staticmethod
     def from_dict(data: OperationData) -> Operation:
+        data["type"] = OperationType(data["type"])
         return Operation(**data)
 
 OPERATION_FIELDS = {f.name for f in fields(Operation) if f.name != "id"}
@@ -40,16 +54,3 @@ class OperationUpdate(TypedDict):
     title: str | None
     amount: float | None
     date: str | None
-
-class OperationType(StrEnum):
-    EXPENSE = "расход"
-    INCOME = "доход"
-
-    @staticmethod
-    def get_type(id: str | int) -> OperationType | None:
-        return {
-            "1": OperationType.EXPENSE, 
-            "2": OperationType.INCOME, 
-            1: OperationType.EXPENSE, 
-            2: OperationType.INCOME
-        }.get(id)

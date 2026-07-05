@@ -3,7 +3,7 @@ import os
 from datetime import date
 from category import Category
 from format import *
-from operation import Operation, OperationUpdate, OperationData
+from operation import Operation, OperationUpdate, OperationData, OperationType
 from finance_manager import FinanceManager
 
 class Console:
@@ -190,12 +190,8 @@ class Console:
             value = self.__prompt()
             if value == "":
                 if allowNone: break
-            elif value == "1":
-                op_data["type"] = "расход"
-                break
-            elif value == "2":
-                op_data["type"] = "доход"
-                break
+            else:
+                op_data["type"] = OperationType.get_type(value)
 
             self.__show_message(self.__errors.get(2))
 
