@@ -191,7 +191,9 @@ class Console:
             if value == "":
                 if allowNone: break
             else:
-                op_data["type"] = OperationType.get_type(value)
+                if OperationType.get_type(value) != None:
+                    op_data["type"] = OperationType.get_type(value)
+                    break
 
             self.__show_message(self.__errors.get(2))
 
@@ -383,16 +385,16 @@ class Console:
         print(f"{RED}Баланс: {data["balance"]}{RESET}") if data["balance"] < 0 else print(f"{GREEN}Баланс: {data["balance"]}{RESET}")
 
     def show_statistics_by_categories(self):
-        income = self.manager.get_amount_by_categories("доход")
+        income = self.manager.get_amount_by_categories(OperationType.INCOME)
         print(f"{BOLD}Доходы:{RESET}")
         for cat_id in income:
             self.__show_stats(cat_id, income.get(cat_id))
-        print(f"{BOLD}Итого: {self.manager.get_amount_by_op_type("доход")}{RESET}")
+        print(f"{BOLD}Итого: {self.manager.get_amount_by_op_type(OperationType.INCOME)}{RESET}")
 
         print()
 
-        expenses = self.manager.get_amount_by_categories("расход")
+        expenses = self.manager.get_amount_by_categories(OperationType.EXPENSE)
         print(f"{BOLD}Расходы:{RESET}")
         for cat_id in expenses:
             self.__show_stats(cat_id, expenses.get(cat_id))
-        print(f"{BOLD}Итого: {self.manager.get_amount_by_op_type("расход")}{RESET}")
+        print(f"{BOLD}Итого: {self.manager.get_amount_by_op_type(OperationType.EXPENSE)}{RESET}")

@@ -1,12 +1,19 @@
 
-class Category:
-    def __init__(self, id: int, title: str):
-        self.id = id
-        self.title = title
+from dataclasses import dataclass, asdict
+from typing import TypedDict
 
-    def to_dict(self) -> dict:
-        return {"id": self.id, "title": self.title}
+@dataclass
+class Category:
+    id: int = 0
+    title: str = "default_category_title"
+
+    def to_dict(self) -> CategoryData:
+        return asdict(self)
     
     @staticmethod
-    def from_dict(data: dict) -> Category:
-        return Category(data.get("id"), data.get("title"))
+    def from_dict(data: CategoryData) -> Category:
+        return Category(**data)
+    
+class CategoryData(TypedDict):
+    id: int
+    title: str

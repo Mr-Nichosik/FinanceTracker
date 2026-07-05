@@ -1,11 +1,9 @@
 
-from category import Category
-from operation import *
+from category import Category, CategoryData
+from operation import Operation, OperationData, OPERATION_FIELDS
 import os
 import shutil
 import json
-
-from operation import Operation, OperationData, OPERATION_FIELDS
 
 class Storage:
     __currentFolder = os.path.dirname(os.path.abspath(__file__))
@@ -59,28 +57,17 @@ class Storage:
 
     @staticmethod
     def get_op_id_set() -> set[int]:
-        data: list[Operation] = Storage.load_all_op()
-        id_set = set()
-        for i in data:
-            id_set.add(i.id)
-        return id_set
+        return set(op.id for op in Storage.load_all_op())
 
     @staticmethod
     def load_all_cat() -> list[Category]:
-        cat_list = []
-
-        data = Storage.__raw_load()
-        for i in data.get(Storage.__categorySectionTitle, []):
-            i: Category = Category.from_dict(i)
-            cat_list.append(i)
-
-        return cat_list
+        return [Category.from_dict(cat) for cat in Storage.__raw_load().get(Storage.__categorySectionTitle, [])]
 
     @staticmethod
     def load_cat(id: int) -> Category | None:
-        data = Storage.__raw_load()
-        for i in data.get(Storage.__categorySectionTitle, []):
-            if i.get("id") == id:
+        data: list[CategoryData] = Storage.__raw_load().get(Storage.__categorySectionTitle, [])
+        for i in data:
+            if i["id"] == id:
                 return Category.from_dict(i)
         
         return None
@@ -97,8 +84,10 @@ class Storage:
     @staticmethod
     def edit_cat(id: int, title) -> Category | None:
         data = Storage.__raw_load()
-        for i in data.get(Storage.__categorySectionTitle, []):
-            if i.get("id") == id:
+        cats: list[CategoryData] = [cat for cat in data.get(Storage.__categorySectionTitle, [])]
+
+        for i in cats:
+            if i["id"] == id:
                 i["title"] = title
 
         Storage.__save_data(data)
@@ -113,11 +102,17 @@ class Storage:
 
     @staticmethod
     def get_cat_id_set() -> set[int]:
-        data: list[Category] = Storage.load_all_cat()
-        id_set = set()
+        return set(cat.id for cat in Storage.load_all_cat())
+
+    @staticmethod
+    def get_category_amount(cat_id: int) -> float:
+        data = Storage.load_all_op()
+        amount = 0
         for i in data:
-            id_set.add(i.id)
-        return id_set
+            if i.category_id == cat_id:
+                amount += i.amount
+
+        return amount
 
     @staticmethod
     def __raw_load() -> dict[str, list]:
@@ -171,16 +166,6 @@ class Storage:
         except json.JSONDecodeError:
             Storage.__creat_backup()
             Storage.__create_file()
-
-    @staticmethod
-    def get_category_amount(cat_id: int) -> float:
-        data = Storage.load_all_op()
-        amount = 0
-        for i in data:
-            if i.category_id == cat_id:
-                amount += i.amount
-
-        return amount
 
 if __name__ == "__main__":
     pass

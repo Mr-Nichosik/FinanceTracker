@@ -73,7 +73,7 @@ class FinanceManager:
         income = self.get_amount_by_op_type(OperationType.INCOME)
         expenses = self.get_amount_by_op_type(OperationType.EXPENSE)
         balance = income-expenses
-        return Balance(income, expenses, balance)
+        return Balance(income=income, expenses=expenses, balance=balance)
     
     def get_amount_by_op_type(self, op_type: OperationType) -> float:
         amount = 0
