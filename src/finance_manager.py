@@ -132,7 +132,7 @@ class FinanceManager:
         
         return len(lst)
     
-    def get_amount_by_categories(self, op_type: Literal["доход", "расход"]) -> dict[int, float]:
+    def get_amount_by_categories(self, op_type: OperationType) -> dict[int, float]:
         cats = self.get_all_categories()
         ops = self.get_all_operations()
 
@@ -146,4 +146,4 @@ class FinanceManager:
 
 if __name__ == "__main__":
     man = FinanceManager()
-    print(man.get_amount_by_categories("доход"))
+    print(man.get_amount_by_categories(OperationType.INCOME))
