@@ -8,6 +8,7 @@ import json
 class Storage:
     __currentFolder = os.path.dirname(os.path.abspath(__file__))
     __fileName = os.path.join(__currentFolder, "data.json")
+    __backupFolder = os.path.join(__currentFolder, "backups\\")
 
     __operationSectionTitle = "Tasks"
     __categorySectionTitle = "Categories"
@@ -137,8 +138,9 @@ class Storage:
             Storage.__create_file()
         
     @staticmethod
-    def __creat_backup():
-        shutil.copy(Storage.__fileName, os.path.join(Storage.__currentFolder, "data.backup.json"))
+    def __create_backup():
+        os.makedirs(Storage.__backupFolder, exist_ok=True)
+        shutil.copy(Storage.__fileName, os.path.join(Storage.__currentFolder, "backups", "data.backup.json"))
 
     @staticmethod
     def ensure_structure():
@@ -150,7 +152,7 @@ class Storage:
 
             if Storage.__operationSectionTitle in data and Storage.__categorySectionTitle in data: return
 
-            Storage.__creat_backup()
+            Storage.__create_backup()
 
             if Storage.__operationSectionTitle not in data and Storage.__categorySectionTitle not in data:  
                 Storage.__create_file()
@@ -164,9 +166,17 @@ class Storage:
                 json.dump(data, file, ensure_ascii=False, indent=4)
 
         except json.JSONDecodeError:
-            Storage.__creat_backup()
+            Storage.__create_backup()
             Storage.__create_file()
+
+    @staticmethod
+    def export_data(path: str):
+        shutil.copy2(Storage.__fileName, path)
+
+    @staticmethod
+    def __import_data(file_name: str):
+        Storage.__create_backup()
+        shutil.copyfile(file_name, Storage.__fileName)
 
 if __name__ == "__main__":
     pass
-        
