@@ -18,6 +18,7 @@
 
 ## Структура
 
+```
 src/
 ├── console.py
 ├── finance_manager.py
@@ -25,6 +26,7 @@ src/
 ├── operation.py
 ├── category.py
 └── main.py
+```
 
 ## Запуск
 
