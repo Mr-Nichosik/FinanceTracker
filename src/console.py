@@ -5,6 +5,7 @@ from category import Category
 from format import *
 from operation import Operation, OperationUpdate, OperationData, OperationType
 from finance_manager import FinanceManager, Balance, SortType
+from config import APP_NAME, APP_VERSION
 
 class Console:
     def __init__(self):
@@ -277,6 +278,9 @@ class Console:
             print(i.get("desc"))
 
     def run(self):
+        print(f"{CYAN}{APP_NAME}, v{APP_VERSION}{RESET}")
+        print(f"{BOLD}==============================={RESET}")
+
         while True:
             try:
                 self.__run_menu(self.__main_commands, False, True)
