@@ -2,70 +2,77 @@
 import os
 from datetime import date
 from category import Category
-from format import *
+from console_format import *
 from operation import Operation, OperationUpdate, OperationData, OperationType
 from finance_manager import FinanceManager, Balance, SortType
 from config import APP_NAME, APP_VERSION
+from prompt_toolkit import PromptSession
 
 class Console:
     def __init__(self):
         self.__main_commands = [
             {
-                "id": -1,
+                "id": "-1",
                 "desc": "[DEBUG] Shows task by id",
                 "prefix": "DEBUG",
                 "action": self.__show_operation_by_id,
             },
             {
-                "id": 0,
+                "id": "0",
                 "desc": "[DEBUG] Shows all tasks",
                 "prefix": "DEBUG",
                 "action": self.__show_all_operations,
             },
             {
-                "id": 1,
+                "id": "v",
+                "desc": "Показать версию",
+                "prefix": None,
+                "action": self.__show_app_info,
+            },
+            {
+                "id": "1",
                 "desc": "Добавить операцию",
                 "prefix": None,
                 "action": self.add_operation,
             },
             {
-                "id": 2,
+                "id": "2",
                 "desc": "Редактировать операцию",
                 "prefix": None,
                 "action": self.edit_operation,
             },
             {
-                "id": 3,
+                "id": "3",
                 "desc": "Удалить операцию",
                 "prefix": None,
                 "action": self.remove_operation,
             },
             {
-                "id": 4,
+                "id": "4",
                 "desc": "Фильтр",
                 "prefix": None,
                 "action": self.show_filtered_operations,
             },
             {
-                "id": 5,
+                "id": "5",
                 "desc": "Управление категориями",
                 "prefix": None,
                 "action": self.categories_control,
             },
             {
-                "id": 6,
+                "id": "6",
                 "desc": "Показать баланс",
                 "prefix": None,
                 "action": self.show_balance,
             },
             {
-                "id": 7,
+                "id": "7",
                 "desc": "Показать статистику по категориям",
                 "prefix": None,
                 "action": self.show_statistics_by_categories,
             },
             {
-                "id": 8,
+                "id": "8",
                 "desc": "Показать последние N операций",
                 "prefix": None,
                 "action": self.show_last_n_operations,
@@ -73,15 +80,19 @@ class Console:
         ]
 
         self.__category_commands = [
-            {"id": 1, "desc": "Создать", "prefix": None, "action": self.add_category},
             {
-                "id": 2,
+                "id": "1", 
+                "desc": "Создать", 
+                "prefix": None, 
+                "action": self.add_category},
+            {
+                "id": "2",
                 "desc": "Редактировать",
                 "prefix": None,
                 "action": self.edit_category,
             },
             {
-                "id": 3,
+                "id": "3",
                 "desc": "Удалить",
                 "prefix": None,
                 "action": self.remove_category,
@@ -116,12 +127,7 @@ class Console:
         return data
 
     def __input_command(self):
-        while True:
-            try:
-                command_id = int(self.__prompt())
-                return command_id
-            except ValueError:
-                self.__show_message(self.__errors.get(3))
+        return self.__prompt()
 
     def __run_menu(self, commands: list[dict], showWithPrefix=False, clearScreen=False):
         print("Доступные действия:")
@@ -277,8 +283,11 @@ class Console:
         for i in actions:
             print(i.get("desc"))
 
+    def __show_app_info(self):
+        print(f"{CYAN}{BOLD}{APP_NAME}, v{APP_VERSION}{RESET}")
+
     def run(self):
-        print(f"{CYAN}{APP_NAME}, v{APP_VERSION}{RESET}")
+        self.__show_app_info()
         print(f"{BOLD}==============================={RESET}")
 
         while True:
@@ -292,10 +301,9 @@ class Console:
             except EOFError:
                 print(f"{RESET}")
                 os.system("cls")
-                self.__run_menu(self.__main_commands, False, True)
 
             except KeyboardInterrupt:
-                print(BOLD, "Работа завершена")
+                print(f"{BOLD}Работа завершена")
                 raise SystemExit
 
     def add_operation(self):
