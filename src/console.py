@@ -1,12 +1,14 @@
 
 import os
 from datetime import date
+from prompt_toolkit import PromptSession
+from prompt_toolkit.formatted_text import ANSI
+
 from category import Category
 from console_format import *
-from operation import Operation, OperationUpdate, OperationData, OperationType
+from operation import Operation, OperationData, OperationType
 from finance_manager import FinanceManager, Balance, SortType
 from config import APP_NAME, APP_VERSION
-from prompt_toolkit import PromptSession
 
 class Console:
     def __init__(self):
@@ -120,11 +122,9 @@ class Console:
 
         self.manager = FinanceManager()
 
-    def __prompt(self) -> str:
-        data = input(f"{CYAN}>{RESET} {UNDERLINE}")
-        print(f"{RESET}")
-
-        return data
+    def __prompt(self, prompt_text: str ="", default_text: str = "", multiline=False) -> str:
+        session = PromptSession(multiline=multiline)
+        return session.prompt(ANSI(f"{CYAN}{prompt_text}> {RESET}"), default=default_text, prompt_continuation=ANSI(f"{CYAN}>{RESET}"))
 
     def __input_command(self):
         return self.__prompt()
@@ -203,78 +203,76 @@ class Console:
             except ValueError:
                 self.__show_message(self.__errors.get(3))
 
-    def __get_operation_data(self, allowNone=True) -> OperationUpdate | OperationData:
-        op_data = self.manager.get_operation_update_template()
+    def __get_operation_data(self, data: OperationData | None = None) -> OperationData:
+        if data is None:
+            data = self.manager.get_operation_template()
 
-        while True:
-            print("Тип операции (1 - расход | 2 - доход):")
-            value = self.__prompt()
-            if value == "":
-                if allowNone: break
+        print("Тип операции (1 - расход | 2 - доход):")
+        while True:   
+            if data["type"] == "расход":
+                value = self.__prompt(default_text="1")
+            elif data["type"] == "доход":
+                value = self.__prompt(default_text="2")
             else:
+                value = self.__prompt()
+
+            if value != "":
                 if OperationType.get_type(value) != None:
-                    op_data["type"] = OperationType.get_type(value)
+                    data["type"] = OperationType.get_type(value)
                     break
 
             self.__show_message(self.__errors.get(2))
 
+        print("Категория:")
         while True:
-            print("Категория:")
-            value = self.__prompt()
-            if value == "": 
-                if allowNone: break
-            elif not self.manager.category_exists_by_title(value):
-                print("Такой категории нет. Создать? (1-Y | Enter-изменить)")
-                an = self.__prompt()
-                if an == "1":
-                    op_data["category_id"] = self.manager.add_category(value).id
+            value = self.__prompt(default_text=self.manager.get_category(data["category_id"]).title)
+
+            if value != "": 
+                if not self.manager.category_exists_by_title(value):
+                    print("Такой категории нет. Создать? (1-Y | Enter-изменить)")
+                    an = self.__prompt()
+                    if an == "1":
+                        data["category_id"] = self.manager.add_category(value).id
+                        break
+                    continue
+                else:
+                    data["category_id"] = self.manager.get_category_by_title(value).id
                     break
-                continue
-            else:
-                op_data["category_id"] = self.manager.get_category_by_title(value).id
+
+            self.__show_message(self.__errors.get(2))
+
+        print("Заголовок:")
+        while True:          
+            value = self.__prompt(default_text=data["title"])
+            if value != "":
+                data["title"] = value
                 break
 
             self.__show_message(self.__errors.get(2))
 
-        while True:
-            print("Заголовок:")
-            value = self.__prompt()
-
-            if value == "":
-                if allowNone: break
-            else:
-                op_data["title"] = value
-                break
-
-            self.__show_message(self.__errors.get(2))
-
+        print("Сумма (формат дробных чисел - 100.5)")
         while True:
             try:
-                print("Сумма (формат дробных чисел - 100.5)")
-                value = self.__prompt()
-                if value == "":
-                    if allowNone: break
-                else:
-                    op_data["amount"] = float(value)
+                value = self.__prompt(default_text=str(data["amount"]))
+                if value != "":
+                    data["amount"] = float(value)
                     break
 
                 self.__show_message(self.__errors.get(2))
             except ValueError:
                 self.__show_message(self.__errors.get(3))
 
+        print("Дата (Enter - текущая):")
         while True:
-            print("Дата:")
-            value = self.__prompt()
+            value = self.__prompt(default_text=data["date"])
             if value == "":
-                if allowNone: break
-                else:
-                    op_data["date"] = str(date.today().strftime("%d.%m.%Y"))
-                    break
-            else:
-                op_data["date"] = value
+                data["date"] = str(date.today().strftime("%d.%m.%Y"))
                 break
 
-        return op_data
+            data["date"] = value
+            break
+
+        return data
 
     def __show_stats(self, cat_id: int, amount: float):
         print(f"{self.manager.get_category(cat_id).title}: {amount}")
@@ -307,7 +305,7 @@ class Console:
                 raise SystemExit
 
     def add_operation(self):
-        data: OperationData = self.__get_operation_data(False)
+        data: OperationData = self.__get_operation_data()
 
         self.__show_operation(self.manager.add_operation(data))
         self.__show_message(self.__messages[0], True)
@@ -319,10 +317,10 @@ class Console:
             self.__show_message(self.__errors[4])
             id = self.__get_id()
 
-        old_op = self.manager.get_operation(id)
+        old_op: Operation = self.manager.get_operation(id)
 
         print("Нажмите Enter, чтобы пропустить условие")
-        new_op = self.__get_operation_data(allowNone=True)
+        new_op = self.__get_operation_data(old_op.to_dict())
         new_op["id"] = id
 
         self.__show_operation(self.manager.edit_operation(old_op, new_op))

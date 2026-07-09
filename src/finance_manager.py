@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from category import Category
-from operation import Operation, OperationUpdate, OperationData, OPERATION_FIELDS, OperationType
+from operation import Operation, OperationData, OPERATION_FIELDS, OperationType
 from storage import Storage
 from typing import TypedDict
 from datetime import datetime
@@ -41,7 +41,7 @@ class FinanceManager:
 
         return op
 
-    def edit_operation(self, old_op: Operation, new_data: OperationUpdate) -> Operation | None:
+    def edit_operation(self, old_op: Operation, new_data: OperationData) -> Operation | None:
         if old_op.id != new_data["id"]:
             print("FinanceManager log: edit_operation: id compression error")
             return
@@ -64,8 +64,8 @@ class FinanceManager:
     def operation_exists(self, id) -> bool:
         return self.get_operation(id) != None
 
-    def get_operation_update_template(self, id: int = 0) -> OperationUpdate:
-        return Operation.blank_update(id)
+    def get_operation_template(self) -> OperationData:
+        return Operation.get_template()
 
     def filter_operations(self, period: str = None, category_title: str = None, type_id: str | int = None, sort_type: SortType = SortType.DATE) -> list[Operation]:
         data: list[Operation] = self.get_all_operations()

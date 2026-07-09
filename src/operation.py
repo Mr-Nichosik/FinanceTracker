@@ -21,22 +21,21 @@ class OperationType(StrEnum):
 @dataclass
 class Operation:
     id: int = 0
-    type: OperationType = OperationType.EXPENSE
+    type: OperationType = ""
     category_id: int = 1
-    title: str = "default_title"
+    title: str = ""
     amount: float = 0
-    date: str = "01.01.1970"
+    date: str = ""
 
     @staticmethod
-    def blank_update(id: int = 0) -> OperationUpdate:
-        return {f.name: None for f in fields(Operation) if f.name != "id"} | {"id": id}
+    def get_template() -> OperationData:
+        return Operation().to_dict()
 
     def to_dict(self) -> OperationData:
         return asdict(self)
     
     @staticmethod
     def from_dict(data: OperationData) -> Operation:
-        data["type"] = OperationType(data["type"])
         return Operation(**data)
 
 OPERATION_FIELDS: set[str] = {f.name for f in fields(Operation) if f.name != "id"}
@@ -48,11 +47,3 @@ class OperationData(TypedDict):
     title: str
     amount: float
     date: str
-
-class OperationUpdate(TypedDict):
-    id: int
-    type: str | None
-    category_id: int | None
-    title: str | None
-    amount: float | None
-    date: str | None
