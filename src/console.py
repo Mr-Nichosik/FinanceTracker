@@ -40,75 +40,6 @@ class MenuItem:
 
 class Console:
     def __init__(self):
-        # self.__main_commands = [
-        #     {
-        #         "id": "-1",
-        #         "desc": "[DEBUG] Shows task by id",
-        #         "prefix": "DEBUG",
-        #         "action": self.__show_operation_by_id,
-        #     },
-        #     {
-        #         "id": "0",
-        #         "desc": "[DEBUG] Shows all tasks",
-        #         "prefix": "DEBUG",
-        #         "action": self.__show_all_operations,
-        #     },
-        #     {
-        #         "id": "v",
-        #         "desc": "Показать версию",
-        #         "prefix": None,
-        #         "action": self.__show_app_info,
-        #     },
-        #     {
-        #         "id": "1",
-        #         "desc": "Добавить операцию",
-        #         "prefix": None,
-        #         "action": self.add_operation,
-        #     },
-        #     {
-        #         "id": "2",
-        #         "desc": "Редактировать операцию",
-        #         "prefix": None,
-        #         "action": self.edit_operation,
-        #     },
-        #     {
-        #         "id": "3",
-        #         "desc": "Удалить операцию",
-        #         "prefix": None,
-        #         "action": self.remove_operation,
-        #     },
-        #     {
-        #         "id": "4",
-        #         "desc": "Фильтр",
-        #         "prefix": None,
-        #         "action": self.show_filtered_operations,
-        #     },
-        #     {
-        #         "id": "5",
-        #         "desc": "Управление категориями",
-        #         "prefix": None,
-        #         "action": self.categories_control,
-        #     },
-        #     {
-        #         "id": "6",
-        #         "desc": "Показать баланс",
-        #         "prefix": None,
-        #         "action": self.show_balance,
-        #     },
-        #     {
-        #         "id": "7",
-        #         "desc": "Показать статистику по категориям",
-        #         "prefix": None,
-        #         "action": self.show_statistics_by_categories,
-        #     },
-        #     {
-        #         "id": "8",
-        #         "desc": "Показать последние N операций",
-        #         "prefix": None,
-        #         "action": self.show_last_n_operations,
-        #     },
-        # ]
-
         self.__main_commands = [
             MenuItem("-1", "[DEBUG] Show operation by id", self.__show_operation_by_id, "DEBUG"),
             MenuItem("0", "[DEBUG] Show all operations", self.__show_all_operations, "DEBUG"),
@@ -124,29 +55,15 @@ class Console:
         ]
 
         self.__category_commands = [
-            {
-                "id": "1", 
-                "desc": "Создать", 
-                "prefix": None, 
-                "action": self.add_category},
-            {
-                "id": "2",
-                "desc": "Редактировать",
-                "prefix": None,
-                "action": self.edit_category,
-            },
-            {
-                "id": "3",
-                "desc": "Удалить",
-                "prefix": None,
-                "action": self.remove_category,
-            },
+            MenuItem("1", "Создать", self.add_category),
+            MenuItem("2", "Редактировать", self.edit_category),
+            MenuItem("3", "Удалить", self.remove_category)
         ]
 
-        self.__sort_type_commands = [
-            {"id": 1, "desc": "По дате - 1", "action": SortType.DATE},
-            {"id": 2, "desc": "По сумме - 2", "action": SortType.AMOUNT},
-            {"id": 3, "desc": "По категории - 3", "action": SortType.CATEGORY},
+        self.__sort_commands = [
+            MenuItem("1", "По дате", SortType.DATE),
+            MenuItem("2", "По сумме", SortType.AMOUNT),
+            MenuItem("3", "По категории", SortType.CATEGORY)
         ]
 
         self.manager = FinanceManager()
@@ -308,9 +225,9 @@ class Console:
     def __show_stats(self, cat_id: int, amount: float):
         print(f"{self.manager.get_category(cat_id).title}: {amount}")
 
-    def __show_actions_list(self, actions: list[dict]):
+    def __show_actions_list(self, actions: list[MenuItem]):
         for i in actions:
-            print(i.get("desc"))
+            print(f"{i.key}. {i.description}")
 
     def __show_app_info(self):
         print(f"{Format.CYAN}{Format.BOLD}{APP_NAME}, v{APP_VERSION}{Format.RESET}")
@@ -381,7 +298,7 @@ class Console:
 
         print("Сортировать:")   
         while True:
-            self.__show_actions_list(self.__sort_type_commands)
+            self.__show_actions_list(self.__sort_commands)
             sort_type_id = self.__prompt()
             
             if sort_type_id != "":
