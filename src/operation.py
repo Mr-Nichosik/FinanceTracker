@@ -1,6 +1,5 @@
 
 from __future__ import annotations
-
 from dataclasses import dataclass, fields, asdict
 from typing import TypedDict
 from enum import StrEnum
@@ -10,7 +9,7 @@ class OperationType(StrEnum):
     INCOME = "доход"
 
     @staticmethod
-    def get_type(id: str | int) -> OperationType | None:
+    def get_type(id: str | int) -> OperationType:
         return {
             "1": OperationType.EXPENSE, 
             "2": OperationType.INCOME, 

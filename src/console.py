@@ -1,6 +1,7 @@
 
 import os
 from datetime import date
+
 from prompt_toolkit import PromptSession
 from prompt_toolkit.formatted_text import ANSI
 
@@ -217,9 +218,8 @@ class Console:
                 value = self.__prompt()
 
             if value != "":
-                if OperationType.get_type(value) != None:
-                    data["type"] = OperationType.get_type(value)
-                    break
+                data["type"] = FinanceManager.require(OperationType.get_type(value))
+                break
 
             self.__show_message(self.__errors.get(2))
 
@@ -353,8 +353,8 @@ class Console:
             self.__show_actions_list(self.__sort_types)
             sort_type_id = self.__prompt()
             
-            if sort_type_id != "" and SortType.get_type(sort_type_id) != None:
-                sort_type = SortType.get_type(sort_type_id)
+            if sort_type_id != "":
+                sort_type = FinanceManager.require(SortType.get_type(sort_type_id))
                 break
 
             self.__show_message(self.__errors.get(2))

@@ -1,12 +1,15 @@
 
 from __future__ import annotations
+from typing import TypedDict
+from datetime import datetime
+from enum import StrEnum
+from typing import TypeVar
 
 from category import Category
 from operation import Operation, OperationData, OPERATION_FIELDS, OperationType
 from storage import Storage
-from typing import TypedDict
-from datetime import datetime
-from enum import StrEnum
+
+T = TypeVar("T")
 
 class Balance(TypedDict):
     income: float
@@ -19,7 +22,7 @@ class SortType(StrEnum):
     CATEGORY = "category"
 
     @staticmethod
-    def get_type(id: str | int) -> SortType | None:
+    def get_type(id: str | int) -> SortType:
         return {
             "1": SortType.DATE, 
             "2": SortType.AMOUNT,
@@ -78,7 +81,7 @@ class FinanceManager:
             if category_title and category_title != self.get_category(op.category_id).title:
                 continue
             
-            if type_id and OperationType.get_type(type_id) != op.type:
+            if type_id and FinanceManager.require(OperationType.get_type(type_id)) != op.type:
                 continue
 
             filtered.append(op)
@@ -111,7 +114,7 @@ class FinanceManager:
 
         return cat
 
-    def edit_category(self, id, title) -> Category | None:    
+    def edit_category(self, id, title) -> Category | None:
         return Storage.edit_cat(id, title)
 
     def remove_category(self, id: int):
@@ -174,6 +177,16 @@ class FinanceManager:
     def __create_id(self, id_set: set) -> int:
         if len(id_set) == 0: return 1
         else: return max(id_set) + 1
+
+    @staticmethod
+    def require(value: T | None, message: str = "Unexpected None") -> T:
+        """
+        Make sure that your value is not None
+        """
+
+        if value is None:
+            raise ValueError(message)
+        return value
 
 if __name__ == "__main__":
     man = FinanceManager()

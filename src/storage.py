@@ -1,9 +1,10 @@
 
-from category import Category, CategoryData
-from operation import Operation, OperationData, OPERATION_FIELDS
 import os
 import shutil
 import json
+
+from category import Category, CategoryData
+from operation import Operation, OperationData, OPERATION_FIELDS
 
 class Storage:
     __currentFolder = os.path.dirname(os.path.abspath(__file__))
